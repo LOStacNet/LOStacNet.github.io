@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>MSP432E4学习笔记:工程创建 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="MSP432E4学习笔记:工程创建由于Ti是电赛的大金主，在比赛中使用Ti的片子会带来优势。正好手头有一块MSP432E401Y(官板真是好看)，所以打算趁着周六强制考勤时间去入门一下。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MSP432E4学习笔记:工程创建">
+<meta property="og:url" content="https://lostacnet.top/post/32550/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="MSP432E4学习笔记:工程创建由于Ti是电赛的大金主，在比赛中使用Ti的片子会带来优势。正好手头有一块MSP432E401Y(官板真是好看)，所以打算趁着周六强制考勤时间去入门一下。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDoAyR.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDoEO1.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDoZex.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDoew6.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDomTK.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDouFO.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDo600.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDoc7V.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDo2kT.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDoRtU.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDoWhF.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDohp4.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDo41J.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDo5c9.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDoTn1.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDxhOU.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDx5mF.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDxIw4.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDxoTJ.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDx7k9.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDxbf1.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDxLSx.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDxOl6.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDxX6K.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDxxmD.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/03/25/ppDxz0e.png">
+<meta property="article:published_time" content="2023-03-25T08:50:15.000Z">
+<meta property="article:modified_time" content="2023-03-25T14:45:32.758Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="MSP432E4">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s1.ax1x.com/2023/03/25/ppDoAyR.png">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            MSP432E4学习笔记:工程创建
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/32550/" class="article-date">
+	  <time datetime="2023-03-25T08:50:15.000Z" itemprop="datePublished">3月 25</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/Ti/">Ti</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/MSP432E4/" rel="tag">MSP432E4</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/32550/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 1.9k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 7(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="MSP432E4学习笔记-工程创建"><a href="#MSP432E4学习笔记-工程创建" class="headerlink" title="MSP432E4学习笔记:工程创建"></a>MSP432E4学习笔记:工程创建</h1><p>由于Ti是电赛的大金主，在比赛中使用Ti的片子会带来优势。正好手头有一块MSP432E401Y(官板真是好看)，所以打算趁着周六强制考勤时间去入门一下。</p>
+<span id="more"></span>
+
+<h2 id="一，下载必要软件包"><a href="#一，下载必要软件包" class="headerlink" title="一，下载必要软件包"></a>一，下载必要软件包</h2><p>Ti为MSP430E4提供了SDK。但是Ti官网的命名让人十分迷惑，关于MSP432可以在Ti官网找到两个包：<a target="_blank" rel="noopener" href="https://www.ti.com.cn/tool/cn/MSP432WARE?keyMatch=MSP432E401Y#downloads">MSP432WARE</a>,<a target="_blank" rel="noopener" href="https://www.ti.com.cn/tool/cn/SIMPLELINK-MSP432-SDK?keyMatch=MSP432E401Y#downloads">SIMPLELINK-MSP432E4-SDK</a>.经过实测，其中<strong>SIMPLELINK-MSP432E4-SDK</strong>是MSP432E4的SDK，另外一个是MSP432P的SDK(<del>SBTi</del>)。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDoAyR.png" alt="image-20230325171007690"></p>
+<p>下载后直接安装，安装完成后会自动打开版本手册和<strong>快速开始指导</strong>，其中快速指导中写了如何创建新的工程，包括使用CCS，IAR，Keil。我们这里使用Keil进行开发。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDoEO1.png" alt="image-20230325171337835"></p>
+<blockquote>
+<ul>
+<li>Download and Install Keil uVision 5.23</li>
+<li>Install the TexasInstruments::MSP432E4xx_DFP pack</li>
+<li>Install the ARM::CMSIS pack</li>
+</ul>
+</blockquote>
+<p>可以看到，我们还需要下载MSP432E4的<strong>keil PACK</strong>。</p>
+<p>打开keil，进入Pack Installer。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDoZex.png" alt="image-20230325171549220"></p>
+<p>在Devices中找到Ti的MSP432E4。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDoew6.png" alt="image-20230325171650189"></p>
+<p>点击后，在右侧可以看见pack包，可以选择直接在软件中安装(很慢)，也可以选择自己到网页上下载。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDomTK.png" alt="image-20230325171903190"></p>
+<p>这里为了快速下载，我们点击Device中芯片型号后面的蓝色链接打开keil官网，如下图，点击Download按钮直接下载Pack，下载完成后点击安装。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDouFO.png" alt="image-20230325172037402"></p>
+<p>完成上述步骤后开发环境就配置好了，打开SDK安装目录下的点灯例程:<code>examples\nortos\MSP_EXP432E401Y\driverlib\blinky</code>,打开工程，编译。</p>
+<p>将MSPE401Y开发板连接上电脑，这时电脑应该会自动配置驱动，配置完成后点击下载程序，就可以看见灯闪了。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDo600.png" alt="image-20230325173048865"></p>
+<h2 id="二，创建新的工程"><a href="#二，创建新的工程" class="headerlink" title="二，创建新的工程"></a>二，创建新的工程</h2><h3 id="（一）通过空工程创建"><a href="#（一）通过空工程创建" class="headerlink" title="（一）通过空工程创建"></a>（一）通过空工程创建</h3><p>在<strong>Quick_Start</strong>中，Ti告诉我们不要使用Keil自带的创建工程新建新的工程，要求基于其中的例程进行创建，也就是直接使用Ti给你创建好的工程进行开发。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDoc7V.png" alt="image-20230325174000153"></p>
+<blockquote>
+<p>Do not use the New Project Creation Wizard </p>
+<ul>
+<li>Start with one of the example projects or empty project template shipped inside the SDK. Each software component in the SDK comes with its own set of examples. If your project depends on multiple TI provided software libraries, start from the empty template then add the necessary components into your projects.</li>
+<li>Import one of the empty project template shown below to your IDE and start your application from there. All the necessary include paths and SDK specific defines if any are already part of the Empty Project Template</li>
+</ul>
+</blockquote>
+<p>因此，<strong>直接打开:<code>examples\nortos\MSP_EXP432E401Y\driverlib\empty</code>空工程进行就可以进行开发了</strong>。</p>
+<h3 id="（二）使用Keil创建工程"><a href="#（二）使用Keil创建工程" class="headerlink" title="（二）使用Keil创建工程"></a>（二）使用Keil创建工程</h3><p>由于之前刚刚学会了如何脱离Cube创建STM32的工程，现在想自己实践一下亲自创建，所以打算手动创建一下Keil工程(<del>浑身反骨</del>)。</p>
+<hr>
+<p>我们先打开编译过的<code>blinky</code>工程，首先看一下它的目录结构：</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDo2kT.png" alt="image-20230325175033484"></p>
+<p>其中<code>Blinky.c</code>是类似于STM32中**<code>main.c</code>文件**，由用户创建。</p>
+<p>打开<code>system_msp432e401y,c</code>观察，发现是和<strong>时钟</strong>频率有关的函数，很像STM32中的文件。</p>
+<p>其他四个文件夹分别对应四种不同的开发环境，这里我们打开keil文件夹：</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDoRtU.png" alt="image-20230325180939442"></p>
+<p>红框中的文件时打开keil编译后产生的，不用管。</p>
+<p><code>.uvoptx</code>结尾的文件是<strong>keil的工程</strong>，创建工程时建立。</p>
+<p><code>.sct</code>工程是Ti提供的<strong>链接文件</strong>，具体用途可以百度，但是我们发现<code>Objects</code>中也有一个sct文件，这是keil编译时自动生成的，上图目录中的sct文件其实没用（但是为了保证工程的正确性，最好还是使用Ti提供的sct文件）。</p>
+<p><code>startup_msp432e401y_uvision.s</code>就不用说了吧，经典的<strong>启动文件</strong>。</p>
+<hr>
+<p>那么工程文件结构就看完了，是不是发现少了什么？对，各种奇怪的<strong>头文件</strong>不见了，然后还没有<strong>库函数文件</strong>。这些东西在哪呢？</p>
+<p>我们先打开工程文件，看一下keil的配置：</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDoWhF.png" alt="image-20230325183509920"></p>
+<p>工程目录中可以看到之前在目录中看见的文件，这里多出来一个<code>.a</code>文件，经过查找，发现在<code>simplelink_msp432e4_sdk_4_20_00_12\source\ti\devices\msp432e4\driverlib\lib\keil\m4f</code>中。</p>
+<p>再查看头文件，发现在<code>simplelink_msp432e4_sdk_4_20_00_12\source\ti\devices\msp432e4</code></p>
+<p>以及<code>simplelink_msp432e4_sdk_4_20_00_12\source\third_party\CMSIS\Include</code></p>
+<p>可以找到</p>
+<p>那么到这里就可以知道了，主要的库文件都在<code>E:\TI\simplelink_msp432e4_sdk_4_20_00_12\source\ti\devices\msp432e4</code>下面，接下来就可以开始创建工程了。</p>
+<hr>
+<h4 id="1，创建工程"><a href="#1，创建工程" class="headerlink" title="1，创建工程"></a>1，创建工程</h4><p>打开keil，点击新建工程，选择芯片为：<code>MSP432E401Y</code>。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDohp4.png" alt="image-20230325185544376"></p>
+<p>新建完成后，我们将<code>SDK安装目录\source\ti\devices\msp432e4</code>打开，准备复制文件。</p>
+<h4 id="2，复制启动文件"><a href="#2，复制启动文件" class="headerlink" title="2，复制启动文件"></a>2，复制启动文件</h4><p>首先点开<code>startup_system_files</code>文件夹，将<code>system_msp432e401y.c</code>和<strong>keil文件夹</strong>中的<code>startup_msp432e401y_uvision.s</code>复制到工程目录下（我复制到了目录中的startup文件夹下）</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDo41J.png" alt="image-20230325190223154"></p>
+<h4 id="3，复制连接文件"><a href="#3，复制连接文件" class="headerlink" title="3，复制连接文件"></a>3，复制连接文件</h4><p>点开<code>linker_files\keil</code>文件夹，将<code>MSP432E401Y.sct</code>文件复制到工程目录。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDo5c9.png" alt="image-20230325191029677"></p>
+<h4 id="4，复制头文件"><a href="#4，复制头文件" class="headerlink" title="4，复制头文件"></a>4，复制头文件</h4><p>打开<code>simplelink_msp432e4_sdk_4_20_00_12\source</code>文件夹，可以看到如下文件夹:</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDoTn1.png" alt="image-20230325200005760"></p>
+<ul>
+<li><code>ti</code>：包含了Ti的各种文件，包括寄存器地址，基本驱动函数库</li>
+<li><code>third_party</code>:第三方的各种文件，包括ARM核的相关操作函数，fatfs文件系统,DSP等库</li>
+</ul>
+<p>这里我们需要添加这两个文件夹的东西。</p>
+<p>首先是<strong>ARM内核和编译器的文件</strong>:</p>
+<p>打开<code>simplelink_msp432e4_sdk_4_20_00_12\source\third_party\CMSIS\Include</code>，根据我们使用的芯片(M4内核),以及编译器(gcc)选择添加头文件：</p>
+<ul>
+<li><code>cmsis_armcc.h</code></li>
+<li><code>cmsis_compiler.h</code></li>
+<li><code>cmsis_version.h</code></li>
+<li><code>core_cm4.h</code></li>
+<li><code>mpu_armv7.h</code></li>
+</ul>
+<p>然后是<strong>Ti的库和启动函数文件</strong>：</p>
+<p>打开<code>simplelink_msp432e4_sdk_4_20_00_12\source\ti\devices\msp432e4\inc</code></p>
+<p>将<code>inc</code>文件夹复制到工程目录。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDxhOU.png" alt="image-20230325191324108"></p>
+<ul>
+<li>其实不必全部复制，<code>msp.h</code>和<code>msp432.h</code>文件其实都是根据芯片选型定向到<code>msp432e4xx.h</code>。但是为了程序兼容性，还是一起复制。</li>
+</ul>
+<h4 id="5，复制driverlib文件"><a href="#5，复制driverlib文件" class="headerlink" title="5，复制driverlib文件"></a>5，复制driverlib文件</h4><p>点开<code>driverlib</code>文件夹，里面东西很多，都是基本的驱动库。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDx5mF.png" alt="image-20230325191647793"></p>
+<ul>
+<li><code>inc</code>定义了基本的寄存器基地址，MASK等等</li>
+<li><code>xxx.h/xxx.c</code>则是基本驱动库</li>
+<li><code>lib</code>包含了已经编译好的上述基本驱动库</li>
+</ul>
+<p>这里可以选择通过<strong>源码添加</strong>(直接添加源文件)，也可以<strong>添加</strong>已经<strong>编译好的文件</strong>(这样在调试时就不好看寄存器操作了)，为了方便就直接添加lib。</p>
+<p>首先将这个文件夹的头文件复制到工程目录(<strong>不包括inc中的文件</strong>)，然后复制lib中相应的<code>.a</code>文件到工程目录。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDxIw4.png" alt="image-20230325193331064"></p>
+<h4 id="6，设置keil"><a href="#6，设置keil" class="headerlink" title="6，设置keil"></a>6，设置keil</h4><p>点开keil的工程设置，选择<code>C/C++</code>选项，添加Include路径:</p>
+<ul>
+<li>工程中的<code>inc</code>文件</li>
+<li><code>driverlib</code>中的<code>inc</code>文件</li>
+</ul>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDxoTJ.png" alt="image-20230325193507380"></p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDx7k9.png" alt="image-20230325193816922"></p>
+<p>然后选择<code>Link</code>选项，添加sct文件。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDxbf1.png" alt="image-20230325194106624"></p>
+<p>之后选择<code>Debug</code>选项，将调试器改为<code>CMSIS-DAP</code>:</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDxLSx.png" alt="image-20230325194339299"></p>
+<p>然后添加工程文件:</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDxOl6.png" alt="image-20230325194736608"></p>
+<p>然后<strong>修改文件中头文件的路径</strong>，让引用指向本地工程文件夹中的文件。</p>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDxX6K.png" alt="image-20230325195628389"></p>
+<ul>
+<li><p><strong><code>.a</code>文件需要设置为库文件：</strong></p>
+<p>  <img src="https://s1.ax1x.com/2023/03/25/ppDxxmD.png" alt="image-20230325195213524"></p>
+</li>
+</ul>
+<p><img src="https://s1.ax1x.com/2023/03/25/ppDxz0e.png" alt="image-20230325195306814"></p>
+<h4 id="7，编译，下载"><a href="#7，编译，下载" class="headerlink" title="7，编译，下载"></a>7，编译，下载</h4><p>将点灯工程的代码复制到我们新建的工程中，编译下载，可以看见成功运行。</p>
+<h2 id="三，后记"><a href="#三，后记" class="headerlink" title="三，后记"></a>三，后记</h2><p>相比于CubeMX创建工程，这个创建是真的麻烦，比STM32不用Cube创建都要麻烦。所以还是听官方的话吧，乖乖直接复制空工程开发。</p>
+<p>但是这样麻烦还是有回报的：Ti的<strong>库文件基本都在本地工程中</strong>，<strong>可以随意修改</strong>而不怕影响到其他工程。不然全部工程共用一个库，肯定会有一堆问题。</p>
+<p>其实Ti提供的东西还挺多的，SDK包含了DSP，文件系统，GUI等一堆东西，还有例程，但是这些东西藏的好深，没什么说明。</p>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/32550/">https://lostacnet.top/post/32550/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#MSP432E4%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E5%B7%A5%E7%A8%8B%E5%88%9B%E5%BB%BA"><span class="toc-number">1.</span> <span class="toc-text">MSP432E4学习笔记:工程创建</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%8C%E4%B8%8B%E8%BD%BD%E5%BF%85%E8%A6%81%E8%BD%AF%E4%BB%B6%E5%8C%85"><span class="toc-number">1.1.</span> <span class="toc-text">一，下载必要软件包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8C%E5%88%9B%E5%BB%BA%E6%96%B0%E7%9A%84%E5%B7%A5%E7%A8%8B"><span class="toc-number">1.2.</span> <span class="toc-text">二，创建新的工程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%88%E4%B8%80%EF%BC%89%E9%80%9A%E8%BF%87%E7%A9%BA%E5%B7%A5%E7%A8%8B%E5%88%9B%E5%BB%BA"><span class="toc-number">1.2.1.</span> <span class="toc-text">（一）通过空工程创建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%88%E4%BA%8C%EF%BC%89%E4%BD%BF%E7%94%A8Keil%E5%88%9B%E5%BB%BA%E5%B7%A5%E7%A8%8B"><span class="toc-number">1.2.2.</span> <span class="toc-text">（二）使用Keil创建工程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1%EF%BC%8C%E5%88%9B%E5%BB%BA%E5%B7%A5%E7%A8%8B"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">1，创建工程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2%EF%BC%8C%E5%A4%8D%E5%88%B6%E5%90%AF%E5%8A%A8%E6%96%87%E4%BB%B6"><span class="toc-number">1.2.2.2.</span> <span class="toc-text">2，复制启动文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3%EF%BC%8C%E5%A4%8D%E5%88%B6%E8%BF%9E%E6%8E%A5%E6%96%87%E4%BB%B6"><span class="toc-number">1.2.2.3.</span> <span class="toc-text">3，复制连接文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4%EF%BC%8C%E5%A4%8D%E5%88%B6%E5%A4%B4%E6%96%87%E4%BB%B6"><span class="toc-number">1.2.2.4.</span> <span class="toc-text">4，复制头文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5%EF%BC%8C%E5%A4%8D%E5%88%B6driverlib%E6%96%87%E4%BB%B6"><span class="toc-number">1.2.2.5.</span> <span class="toc-text">5，复制driverlib文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6%EF%BC%8C%E8%AE%BE%E7%BD%AEkeil"><span class="toc-number">1.2.2.6.</span> <span class="toc-text">6，设置keil</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#7%EF%BC%8C%E7%BC%96%E8%AF%91%EF%BC%8C%E4%B8%8B%E8%BD%BD"><span class="toc-number">1.2.2.7.</span> <span class="toc-text">7，编译，下载</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%8C%E5%90%8E%E8%AE%B0"><span class="toc-number">1.3.</span> <span class="toc-text">三，后记</span></a></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
