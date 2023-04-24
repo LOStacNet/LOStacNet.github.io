@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>ESP-IDF学习笔记-UART的使用 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="ESP-IDF学习笔记-UART的使用ESP32中串口的使用与STM32中大有不同。在ESP32中使用串口，需要配置串口，设置引脚，安装驱动之后才能使用。接收和发送数据也不是直接向寄存器写数据，而是先存到FIFO中，交由ESP32自动发送。其中断的使用更是结合了FreeRTOS的特性进行的。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ESP-IDF学习笔记-UART的使用">
+<meta property="og:url" content="https://lostacnet.top/post/42443/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="ESP-IDF学习笔记-UART的使用ESP32中串口的使用与STM32中大有不同。在ESP32中使用串口，需要配置串口，设置引脚，安装驱动之后才能使用。接收和发送数据也不是直接向寄存器写数据，而是先存到FIFO中，交由ESP32自动发送。其中断的使用更是结合了FreeRTOS的特性进行的。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-24T14:43:27.000Z">
+<meta property="article:modified_time" content="2023-04-24T17:36:59.431Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="ESP-IDF">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            ESP-IDF学习笔记-UART的使用
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/42443/" class="article-date">
+	  <time datetime="2023-04-24T14:43:27.000Z" itemprop="datePublished">4月 24</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/ESP32/">ESP32</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/ESP-IDF/" rel="tag">ESP-IDF</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/42443/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 2.4k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 9(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="ESP-IDF学习笔记-UART的使用"><a href="#ESP-IDF学习笔记-UART的使用" class="headerlink" title="ESP-IDF学习笔记-UART的使用"></a>ESP-IDF学习笔记-UART的使用</h1><p>ESP32中串口的使用与STM32中大有不同。在ESP32中使用串口，需要配置串口，设置引脚，安装驱动之后才能使用。接收和发送数据也不是直接向寄存器写数据，而是先存到FIFO中，交由ESP32自动发送。其中断的使用更是结合了FreeRTOS的特性进行的。</p>
+<span id="more"></span>
+
+<p>先摆上<a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/api-reference/peripherals/uart.html">官方文档</a>。</p>
+<p>本文参考于<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_50064262/article/details/119006749">这篇文章</a></p>
+<h2 id="一，串口的配置步骤"><a href="#一，串口的配置步骤" class="headerlink" title="一，串口的配置步骤"></a>一，串口的配置步骤</h2><p>一个串口的典型使用步骤如下:</p>
+<ol>
+<li>使用<code>uart_param_config()</code><strong>设置UART参数</strong></li>
+<li>使用<code>art_set_pin()</code><strong>分配UART引脚</strong></li>
+<li>使用<code>uart_driver_install()</code><strong>安装UART驱动</strong></li>
+<li>使用<code>uart_read_bytes()</code>/<code>uart_write_bytes()</code>收发数据</li>
+<li>(可选)新建task读取事件队列处理中断事件</li>
+<li>(可选)删除驱动释放资源</li>
+</ol>
+<p>其中，<strong>1、2、3步可以调换顺序</strong>。</p>
+<h2 id="二，配置的具体步骤"><a href="#二，配置的具体步骤" class="headerlink" title="二，配置的具体步骤"></a>二，配置的具体步骤</h2><p>同STM32HAL库的句柄一样，ESP32中使用一个<code>uart_port_t</code>类型的<code>UART_NUM_x</code>变量<strong>识别不同的UART控制器</strong>，在调用函数时需指明。</p>
+<p>其中<code>UART_NUM_MAX</code>表示该芯片<strong>最大的uart控制器数</strong>，上面的<strong>x最大为</strong><code>UART_NUM_MAX-1</code>。</p>
+<p><strong>ESP32中默认使用<code>UART_NUM_0</code>作为log库的输出</strong>。</p>
+<h3 id="UART参数的配置"><a href="#UART参数的配置" class="headerlink" title="UART参数的配置"></a>UART参数的配置</h3><p>UART参数的配置主要用两种方式，一种是使用<code>uart_param_config</code>+结构体一次性配置；另一种是使用分离函数进行配置。、</p>
+<h4 id="单步配置（结构体）"><a href="#单步配置（结构体）" class="headerlink" title="单步配置（结构体）"></a>单步配置（结构体）</h4><p>使用的函数原型：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">uart_param_config</span><span class="params">(<span class="type">uart_port_t</span> uart_num, <span class="type">const</span> <span class="type">uart_config_t</span> *uart_config)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>参数：</strong></p>
+<ul>
+<li><code>uart_num</code>使用的UART编号</li>
+<li><code>uart_config</code>配置的结构体</li>
+</ul>
+<p><strong>返回：</strong></p>
+<ul>
+<li>ESP_OK Success</li>
+<li>ESP_FALL Parameter error</li>
+</ul>
+<p><code>uart_config_t</code>结构体成员：</p>
+<table>
+<thead>
+<tr>
+<th align="center">成员</th>
+<th align="center">类型</th>
+<th align="center">作用</th>
+<th align="center">可用参数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">baud_rate</td>
+<td align="center">int</td>
+<td align="center">波特率</td>
+<td align="center">宏定义<code>UART_BITRATE_MAX</code>为支持的最大波特率</td>
+</tr>
+<tr>
+<td align="center">data_bits</td>
+<td align="center">uart_word_length_t</td>
+<td align="center">数据位长度</td>
+<td align="center"><code>UART_DATA_X_BITS</code>(X=5~8 )或<code>UART_DATA_BITS_MAX</code></td>
+</tr>
+<tr>
+<td align="center">parity</td>
+<td align="center">uart_parity_t</td>
+<td align="center">校验位</td>
+<td align="center"><code>UART_PARITY_X</code>(X=<code>DISABLE</code>,<code>EVEN</code>,<code>ODD</code>)</td>
+</tr>
+<tr>
+<td align="center">stop_bits</td>
+<td align="center">uart_stop_bits_t</td>
+<td align="center">停止位</td>
+<td align="center"><code>UART_STOP_BITS_X</code>(X=1,1_5,2,MAX)</td>
+</tr>
+<tr>
+<td align="center">flow_ctrl</td>
+<td align="center">uart_hw_flowcontrol_t</td>
+<td align="center">硬件流控制</td>
+<td align="center"><code>UART_HW_FLOWCTRL_X</code>(X=<code>DISABLE</code>,<code>RTS</code>,<code>CTS</code>,<code>CTS_RTS</code>,<code>MAX</code>)</td>
+</tr>
+<tr>
+<td align="center">rx_flow_ctrl_thresh</td>
+<td align="center">uint8_t</td>
+<td align="center">硬件流控制阈值</td>
+<td align="center">—</td>
+</tr>
+<tr>
+<td align="center">source_clk</td>
+<td align="center">uart_sclk_t</td>
+<td align="center">时钟源选择</td>
+<td align="center"><code>UART_SCLK_X</code>(X=<code>APB</code>,<code>RTC</code>,<code>XTAL</code>,<code>DEFAULT</code>(APB))</td>
+</tr>
+</tbody></table>
+<p>如果不使用硬件流控制，可以使用 <code>uart_set_rts()</code> 和 <code>uart_set_dtr()</code>软件流控制。</p>
+<p>使用例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"driver/uart.h"</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> EX_UART_NUM UART_NUM_0</span></span><br><span class="line"></span><br><span class="line"><span class="type">uart_config_t</span> uart_config = {</span><br><span class="line">        .baud_rate = <span class="number">115200</span>,</span><br><span class="line">        .data_bits = UART_DATA_8_BITS,</span><br><span class="line">        .parity = UART_PARITY_DISABLE,</span><br><span class="line">        .stop_bits = UART_STOP_BITS_1,</span><br><span class="line">        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,</span><br><span class="line">        .source_clk = UART_SCLK_DEFAULT,</span><br><span class="line">    };</span><br><span class="line">uart_param_config(EX_UART_NUM, &amp;uart_config);</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="多步配置"><a href="#多步配置" class="headerlink" title="多步配置"></a>多步配置</h4><p>多步配置的函数表如下：</p>
+<table>
+<thead>
+<tr>
+<th align="center">欲配置的参数</th>
+<th align="center">函数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">波特率(Baud rate)</td>
+<td align="center"><code>uart_set_baudrate()</code></td>
+</tr>
+<tr>
+<td align="center">传输数据位长(Number of transmitted bits)</td>
+<td align="center"><code>uart_set_word_length()</code> selected out of <code>uart_word_length_t</code></td>
+</tr>
+<tr>
+<td align="center">奇偶校验(parity control)</td>
+<td align="center"><code>uart_set_parity() </code>selected out of <code>uart_parity_t</code></td>
+</tr>
+<tr>
+<td align="center">停止位数(Number of stop bits)</td>
+<td align="center"><code>uart_set_stop_bits()</code> selected out of <code>uart_stop_bits_t</code></td>
+</tr>
+<tr>
+<td align="center">硬件流控方式(Hardware flow control mode)</td>
+<td align="center"><code>uart_set_hw_flow_ctrl()</code> selected out of <code>uart_hw_flowcontrol_t</code></td>
+</tr>
+<tr>
+<td align="center">通信方式(Communication mode)</td>
+<td align="center"><code>uart_set_mode()</code> selected out of <code>uart_mode_t</code></td>
+</tr>
+</tbody></table>
+<p>同时，上面的每个函数都有一个<code>_get_</code>对应对象来检查当前设置的值。例如，要检查当前波特率值，调用<code>uart_get_baudrate()</code>。</p>
+<h3 id="分配引脚"><a href="#分配引脚" class="headerlink" title="分配引脚"></a>分配引脚</h3><p>使用的函数原型</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">uart_set_pin</span><span class="params">(<span class="type">uart_port_t</span> uart_num, <span class="type">int</span> tx_io_num, <span class="type">int</span> rx_io_num, <span class="type">int</span> rts_io_num, <span class="type">int</span> cts_io_num)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>参数：</strong></p>
+<ul>
+<li><code>uart_num</code>使用的串口编号</li>
+<li><code>tx_io_num</code>TX引脚</li>
+<li><code>rx_io_num</code>RX引脚</li>
+<li><code>rts_io_num</code>RTS引脚</li>
+<li><code>cts_io_num</code>CTS引脚</li>
+</ul>
+<p><strong>返回：</strong></p>
+<ul>
+<li>ESP_OK Success</li>
+<li>ESP_FALL Parameter error</li>
+</ul>
+<p>对于后四个参数，可以使用宏<code>UART_PIN_NO_CHANGE</code><strong>保留已经配置的引脚或者默认引脚</strong>。</p>
+<p>如果设置的GPIO有<strong>该功能的IOMUX（复用</strong>），则信号会<strong>直接接到该引脚而不通过GPIO矩阵</strong>，这样能够支持<strong>更高的速率</strong>。例如。ESP32S3中IO43是默认的U0TXD，IO44是默认的U0RXD；IO17–U1TXD，IO18–U1RXD。</p>
+<p>ESP32提供了一些宏用来定义这些能直连的引脚，参考<a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/api-reference/peripherals/uart.html#c.UART_GPIO43_DIRECT_CHANNEL">官方文档</a>，或者见本章高级用法篇。</p>
+<blockquote>
+<p>内部信号能够被输出到多个GPIO，但只有一个GPIO能输入。</p>
+</blockquote>
+<blockquote>
+<p>经实际测试，ESP32S3的UART好像不能换引脚。</p>
+</blockquote>
+<p>使用例:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"driver/uart.h"</span></span></span><br><span class="line"></span><br><span class="line">uart_set_pin(UART_NUM_0,UART_PIN_NO_CHANGE,UART_PIN_NO_CHANGE,UART_PIN_NO_CHANGE,UART_PIN_NO_CHANGE);</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装驱动"><a href="#安装驱动" class="headerlink" title="安装驱动"></a>安装驱动</h3><p>使用的函数原型：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">uart_driver_install</span><span class="params">(<span class="type">uart_port_t</span> uart_num, <span class="type">int</span> rx_buffer_size, <span class="type">int</span> tx_buffer_size, <span class="type">int</span> queue_size, QueueHandle_t *uart_queue, <span class="type">int</span> intr_alloc_flags)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>参数：</strong></p>
+<ul>
+<li><code>uart_num</code>使用的串口编号</li>
+<li><code>rx_buffer_size</code>接收缓冲区大小</li>
+<li><code>tx_buffer_size</code>发送缓冲区大小</li>
+<li><code>queue_size</code>事件队列大小</li>
+<li><code>uart_queue</code>事件队列句柄，如果成功，这里会有一个新的事件队列。如果设为<code>NULL</code>将不使用</li>
+<li><code>intr_alloc_flags</code>用于分配中断的标志。传入一个或多个<code>ESP_INTR_FLAG_*</code>(详见esp_intr_alloc.h)，不能使用ESP_INTR_FLAG_IRAM(<strong>在meunconfig中设置</strong>)</li>
+</ul>
+<p><strong>返回：</strong></p>
+<ul>
+<li>ESP_OK Success</li>
+<li>ESP_FALL Parameter error</li>
+</ul>
+<p>安装UART驱动程序，同时，UART ISR处理器将被附加到运行该函数的同一个CPU核心上。<code>Rx_buffer_size</code>应该<strong>大于</strong><code>UART_FIFO_LEN</code>。<code>Tx_buffer_size</code>应该是**0或者大于<code>UART_FIFO_LEN</code>**。</p>
+<blockquote>
+<p><code>UART_FIFO_LEN</code>是一个宏定义，定义硬件FIFO的大小</p>
+</blockquote>
+<p>如果发<strong>送缓存区为0</strong>，则使用<code>uart_write_bytes()</code>时会<strong>阻塞发送</strong>。</p>
+<p>例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uart_driver_install(UART_NUM_0,<span class="number">1024</span>,<span class="number">512</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="收发数据"><a href="#收发数据" class="headerlink" title="收发数据"></a>收发数据</h3><h4 id="发数据"><a href="#发数据" class="headerlink" title="发数据"></a>发数据</h4><p>使用的函数原型：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">uart_write_bytes</span><span class="params">(<span class="type">uart_port_t</span> uart_num, <span class="type">const</span> <span class="type">void</span> *src, <span class="type">size_t</span> size)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>参数：</strong></p>
+<ul>
+<li><code>uart_num</code>使用的串口编号</li>
+<li><code>src</code>数据地址</li>
+<li><code>size</code>数据长度</li>
+</ul>
+<p><strong>返回：</strong></p>
+<ul>
+<li>(-1) Parameter error</li>
+<li>OTHERS (&gt;=0) The number of bytes pushed to the TX FIFO</li>
+</ul>
+<p>如果缓冲区为0，该函数会<strong>阻塞直到所有数据被发送或者所有数据被加入FIFO</strong>。</p>
+<p>缓冲区中的数据会被UART ISR逐步转移到FIFO。（有点像32的Transmit_IT）。</p>
+<p>函数<code>uart_write_bytes_with_break()</code>与其功能类似，但会在结束时添加串行中断信号。“串行中断信号”意味着 Tx 线保持低电平的时间长于一个数据帧。</p>
+<p><code>uart_tx_chars()</code>也能将数据写入Tx FIFO，但<strong>不会等待可用空间，而是立即放入硬件FIFO</strong>。</p>
+<p><code>uart_wait_tx_done()</code>用于监听发送缓冲区，在<strong>缓冲区为空时返回</strong>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Wait for packet to be sent</span></span><br><span class="line"><span class="type">const</span> <span class="type">uart_port_t</span> uart_num = UART_NUM_2;</span><br><span class="line">ESP_ERROR_CHECK(uart_wait_tx_done(uart_num, <span class="number">100</span>)); <span class="comment">// wait timeout is 100 RTOS ticks (TickType_t)</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="接数据"><a href="#接数据" class="headerlink" title="接数据"></a>接数据</h4><p>使用的函数原型：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">uart_read_bytes</span><span class="params">(<span class="type">uart_port_t</span> uart_num, <span class="type">void</span> *buf, <span class="type">uint32_t</span> length, TickType_t ticks_to_wait)</span></span><br></pre></td></tr></table></figure>
+
+<p><code>ticks_to_wait</code>是超时时间，值是RTOS的ticks。</p>
+<p>使用该函数前应使用<code>uart_get_buffered_data_len()</code>获得缓冲区数据的长度。比如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Read data from UART.</span></span><br><span class="line"><span class="type">const</span> <span class="type">uart_port_t</span> uart_num = UART_NUM_2;</span><br><span class="line"><span class="type">uint8_t</span> data[<span class="number">128</span>];</span><br><span class="line"><span class="type">int</span> length = <span class="number">0</span>;</span><br><span class="line">ESP_ERROR_CHECK(uart_get_buffered_data_len(uart_num, (<span class="type">size_t</span>*)&amp;length));</span><br><span class="line">length = uart_read_bytes(uart_num, data, length, <span class="number">100</span>);</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>清除缓冲区</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">uart_flush</span><span class="params">(<span class="type">uart_port_t</span> uart_num)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>清除RX缓冲区的内容。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">uart_flush_input</span><span class="params">(<span class="type">uart_port_t</span> uart_num)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>清除输入缓存区内容（如果想等待发送完成，请使用<code>uart_wait_tx_done</code>）。</p>
+<h3 id="使用中断"><a href="#使用中断" class="headerlink" title="使用中断"></a>使用中断</h3><p>这里提到的中断与一般的中断不同，这里应该叫<strong>UART事件</strong>。中断触发后读取的中断源被当做事件添加到队列中，<strong>使用FreeRTOS的一个线程进行读取，处理</strong>，得到<strong>像中断的效果</strong>。</p>
+<p>使用事件处理需要在安装驱动时开启事件队列。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"driver/uart.h"</span></span></span><br><span class="line"><span class="type">static</span> QueueHandle_t uart0_queue;</span><br><span class="line"></span><br><span class="line">uart_driver_install(UART_NUM_0,<span class="number">1024</span>,<span class="number">512</span>,<span class="number">20</span>,&amp;uart0_queue,<span class="number">0</span>);<span class="comment">//队列长度为20</span></span><br></pre></td></tr></table></figure>
+
+<p>UART 默认的事件处理 <strong>没有使用</strong><code>esp_event.h</code>中的事件循环(<code>EventLoop</code>)。而是使用队列传输事件对象（一个<code>uart_event_t</code>类型的结构体）这个结构体包含了事件类型和<code>UART_DATA</code>事件携带的数据。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * @brief Event structure used in UART event queue</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> {</span></span><br><span class="line">    <span class="type">uart_event_type_t</span> type; <span class="comment">/*!&lt; UART 事件类型 */</span></span><br><span class="line">    <span class="type">size_t</span> size;            <span class="comment">/*!&lt; UART 数据长度(仅UART_DATA 事件)*/</span></span><br><span class="line">    <span class="type">bool</span> timeout_flag;      <span class="comment">/*!&lt; UART 超时标志(仅UART_DATA 事件)*/</span></span><br><span class="line">                            <span class="comment">/*!&lt; If the event is caused by FIFO-full interrupt, then there will be no event with the timeout flag before the next byte coming.*/</span></span><br><span class="line">} <span class="type">uart_event_t</span>;</span><br></pre></td></tr></table></figure>
+
+<p>其中，<code>uart_event_type_t</code>包含以下事件：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * @brief UART event types used in the ring buffer</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span> {</span></span><br><span class="line">    UART_DATA,              <span class="comment">/*!&lt; UART data event UART数据事件*/</span></span><br><span class="line">    UART_BREAK,             <span class="comment">/*!&lt; UART break event UART中断事件*/</span></span><br><span class="line">    UART_BUFFER_FULL,       <span class="comment">/*!&lt; UART RX buffer full event UART RX缓冲区满事件*/</span></span><br><span class="line">    UART_FIFO_OVF,          <span class="comment">/*!&lt; UART FIFO overflow event UART FIFO溢出事件*/</span></span><br><span class="line">    UART_FRAME_ERR,         <span class="comment">/*!&lt; UART RX frame error event UART RX帧错误事件*/</span></span><br><span class="line">    UART_PARITY_ERR,        <span class="comment">/*!&lt; UART RX parity event UART奇偶检查错误*/</span></span><br><span class="line">    UART_DATA_BREAK,        <span class="comment">/*!&lt; UART TX data and break event UART TX数据和中断事件*/</span></span><br><span class="line">    UART_PATTERN_DET,       <span class="comment">/*!&lt; UART pattern detected  UART 输入样式检测事件*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> SOC_UART_SUPPORT_WAKEUP_INT</span></span><br><span class="line">    UART_WAKEUP,            <span class="comment">/*!&lt; UART wakeup event */</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    UART_EVENT_MAX,         <span class="comment">/*!&lt; UART event max index*/</span></span><br><span class="line">} <span class="type">uart_event_type_t</span>;</span><br></pre></td></tr></table></figure>
+
+<p>其中，最后一个事件<code>UART_PATTERN_DET</code>是使用<code>uart_enable_pattern_det_baud_intr()</code>启用pattern detect后的触发事件，用于解析特定格式的数据如<code>AT+CGMI</code>。</p>
+<p>安装完驱动后，当有事件发生时，会<strong>自动向队列中填充信息</strong>，一般<strong>使用一个任务来进行及时处理</strong>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"driver/uart.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> QueueHandle_t uart0_queue;</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">uart_event_task</span><span class="params">(<span class="type">void</span> *pv)</span></span><br><span class="line">{</span><br><span class="line">    <span class="type">uart_event_t</span> event;</span><br><span class="line">    <span class="type">uint8_t</span> d;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)</span><br><span class="line">    {</span><br><span class="line">         <span class="keyword">if</span>(xQueueReceive(uart0_queue, (<span class="type">void</span> * )&amp;event, (TickType_t)portMAX_DELAY))</span><br><span class="line">         {</span><br><span class="line">            ESP_LOGI(TAG,<span class="string">"A event in"</span>);</span><br><span class="line">            <span class="keyword">switch</span> (event.type)</span><br><span class="line">            {</span><br><span class="line">            	<span class="keyword">case</span> UART_DATA:</span><br><span class="line">                	uart_read_bytes(UART_NUM_0,&amp;d,<span class="number">1</span>,(TickType_t)portMAX_DELAY);</span><br><span class="line">                	uart_write_bytes(UART_NUM_0, &amp;d, <span class="number">1</span>);</span><br><span class="line">                	<span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">case</span> UART_BREAK:</span><br><span class="line">                	<span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">case</span> ...:</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                    ...</span><br><span class="line">            	<span class="keyword">default</span>:</span><br><span class="line">                	<span class="comment">//ESP_LOGI(TAG, "uart event type: %d", event.type);</span></span><br><span class="line">                	<span class="keyword">break</span>;</span><br><span class="line">            }</span><br><span class="line">         }</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"><span class="type">void</span> <span class="title function_">app_main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{	</span><br><span class="line">	...</span><br><span class="line">	uart_driver_install(UART_NUM_0,<span class="number">1024</span>,<span class="number">512</span>,<span class="number">20</span>,&amp;uart0_queue,<span class="number">0</span>);</span><br><span class="line">	...</span><br><span class="line">	xTaskCreate(uart_event_task, <span class="string">"uart_event_task"</span>, <span class="number">2048</span>, <span class="literal">NULL</span>, <span class="number">12</span>, <span class="literal">NULL</span>);</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<h3 id="删除驱动"><a href="#删除驱动" class="headerlink" title="删除驱动"></a>删除驱动</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">uart_driver_delete</span><span class="params">(<span class="type">uart_port_t</span> uart_num)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>使用该函数释放资源。</p>
+<h2 id="三，高级用法"><a href="#三，高级用法" class="headerlink" title="三，高级用法"></a>三，高级用法</h2><h3 id="其他模式"><a href="#其他模式" class="headerlink" title="其他模式"></a>其他模式</h3><p>UART 控制器支持多种通信模式，使用函数 <code>uart_set_mode()</code>可以选择模式。选择特定模式后，UART 驱动程序将处理已连接 UART 设备的相应行为。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">uart_set_mode</span><span class="params">(<span class="type">uart_port_t</span> uart_num, <span class="type">uart_mode_t</span> mode)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>参数：</strong></p>
+<ul>
+<li><code>mode</code>使用的模式</li>
+</ul>
+<p><strong>该函数必须在<code>uart_driver_install()</code>之后使用。</strong></p>
+<p>支持的参数如下：</p>
+<table>
+<thead>
+<tr>
+<th align="center">参数</th>
+<th align="center">模式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">UART_MODE_UART</td>
+<td align="center">普通UART</td>
+</tr>
+<tr>
+<td align="center">UART_MODE_RS485_HALF_DUPLEX</td>
+<td align="center">half duplex RS485 UART mode control by RTS pin</td>
+</tr>
+<tr>
+<td align="center">UART_MODE_IRDA</td>
+<td align="center">类似于红外协议的模式</td>
+</tr>
+<tr>
+<td align="center">UART_MODE_RS485_COLLISION_DETECT</td>
+<td align="center">RS485 collision detection UART mode (used for test purposes)</td>
+</tr>
+<tr>
+<td align="center">UART_MODE_RS485_APP_CTRL</td>
+<td align="center">application control RS485 UART mode (used for test purposes)</td>
+</tr>
+</tbody></table>
+<p>具体使用参考<a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/api-reference/peripherals/uart.html#rs485">官方文档</a></p>
+<h3 id="pattern-detect"><a href="#pattern-detect" class="headerlink" title="pattern_detect"></a>pattern_detect</h3><p>在检测到重复接收/发送同一字符的“模式”时触发中断。例如，模式检测可用于检测命令字符串末尾是否存在特定数量的相同字符（“模式”）。</p>
+<ul>
+<li>配置并启用此中断：调用 <code>uart_enable_pattern_det_baud_intr()</code></li>
+<li>禁用中断：调用 <code>uart_disable_pattern_det_intr()</code></li>
+</ul>
+<p>用法参见<a target="_blank" rel="noopener" href="https://github.com/espressif/esp-idf/tree/df9310ada26/examples/peripherals/uart/uart_events">peripherals/uart/uart_events</a></p>
+<h3 id="自定义UART中断"><a href="#自定义UART中断" class="headerlink" title="自定义UART中断"></a>自定义UART中断</h3><p>如果不想使用默认的 UART 中断（如上文的 UART 事件 Queue 等高级API）或者自己另有别的绝妙之用，可以注册自己的UART中断。</p>
+<ul>
+<li>使用 <code>uart_isr_register()</code> 注册中断</li>
+<li>使用 <code>uart_isr_free()</code> 释放注册的中断</li>
+</ul>
+<p>写的中断 ISR 程序需要尽可能简短，不要忘了在处理中断前后调用<code>uart_clear_intr_status()</code>清除中断标志。</p>
+<h3 id="一些宏"><a href="#一些宏" class="headerlink" title="一些宏"></a>一些宏</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">UART_GPIO43_DIRECT_CHANNEL</span><br><span class="line">UART_NUM_0_TXD_DIRECT_GPIO_NUM</span><br><span class="line">UART_GPIO44_DIRECT_CHANNEL</span><br><span class="line">UART_NUM_0_RXD_DIRECT_GPIO_NUM</span><br><span class="line">UART_GPIO16_DIRECT_CHANNEL</span><br><span class="line">UART_NUM_0_CTS_DIRECT_GPIO_NUM</span><br><span class="line">UART_GPIO15_DIRECT_CHANNEL</span><br><span class="line">UART_NUM_0_RTS_DIRECT_GPIO_NUM</span><br><span class="line">UART_TXD_GPIO43_DIRECT_CHANNEL</span><br><span class="line">UART_RXD_GPIO44_DIRECT_CHANNEL</span><br><span class="line">UART_CTS_GPIO16_DIRECT_CHANNEL</span><br><span class="line">UART_RTS_GPIO15_DIRECT_CHANNEL</span><br><span class="line"></span><br><span class="line">UART_GPIO17_DIRECT_CHANNEL</span><br><span class="line">UART_NUM_1_TXD_DIRECT_GPIO_NUM</span><br><span class="line">UART_GPIO18_DIRECT_CHANNEL</span><br><span class="line">UART_NUM_1_RXD_DIRECT_GPIO_NUM</span><br><span class="line">UART_GPIO20_DIRECT_CHANNEL</span><br><span class="line">UART_NUM_1_CTS_DIRECT_GPIO_NUM</span><br><span class="line">UART_GPIO19_DIRECT_CHANNEL</span><br><span class="line">UART_NUM_1_RTS_DIRECT_GPIO_NUM</span><br><span class="line">UART_TXD_GPIO17_DIRECT_CHANNEL</span><br><span class="line">UART_RXD_GPIO18_DIRECT_CHANNEL</span><br><span class="line">UART_CTS_GPIO20_DIRECT_CHANNEL</span><br><span class="line">UART_RTS_GPIO19_DIRECT_CHANNEL</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/42443/">https://lostacnet.top/post/42443/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ESP-IDF%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-UART%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">1.</span> <span class="toc-text">ESP-IDF学习笔记-UART的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%8C%E4%B8%B2%E5%8F%A3%E7%9A%84%E9%85%8D%E7%BD%AE%E6%AD%A5%E9%AA%A4"><span class="toc-number">1.1.</span> <span class="toc-text">一，串口的配置步骤</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8C%E9%85%8D%E7%BD%AE%E7%9A%84%E5%85%B7%E4%BD%93%E6%AD%A5%E9%AA%A4"><span class="toc-number">1.2.</span> <span class="toc-text">二，配置的具体步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#UART%E5%8F%82%E6%95%B0%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="toc-number">1.2.1.</span> <span class="toc-text">UART参数的配置</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8D%95%E6%AD%A5%E9%85%8D%E7%BD%AE%EF%BC%88%E7%BB%93%E6%9E%84%E4%BD%93%EF%BC%89"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">单步配置（结构体）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E6%AD%A5%E9%85%8D%E7%BD%AE"><span class="toc-number">1.2.1.2.</span> <span class="toc-text">多步配置</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E9%85%8D%E5%BC%95%E8%84%9A"><span class="toc-number">1.2.2.</span> <span class="toc-text">分配引脚</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E9%A9%B1%E5%8A%A8"><span class="toc-number">1.2.3.</span> <span class="toc-text">安装驱动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%B6%E5%8F%91%E6%95%B0%E6%8D%AE"><span class="toc-number">1.2.4.</span> <span class="toc-text">收发数据</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%91%E6%95%B0%E6%8D%AE"><span class="toc-number">1.2.4.1.</span> <span class="toc-text">发数据</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8E%A5%E6%95%B0%E6%8D%AE"><span class="toc-number">1.2.4.2.</span> <span class="toc-text">接数据</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%AD"><span class="toc-number">1.2.5.</span> <span class="toc-text">使用中断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A0%E9%99%A4%E9%A9%B1%E5%8A%A8"><span class="toc-number">1.2.6.</span> <span class="toc-text">删除驱动</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%8C%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95"><span class="toc-number">1.3.</span> <span class="toc-text">三，高级用法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.3.1.</span> <span class="toc-text">其他模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pattern-detect"><span class="toc-number">1.3.2.</span> <span class="toc-text">pattern_detect</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89UART%E4%B8%AD%E6%96%AD"><span class="toc-number">1.3.3.</span> <span class="toc-text">自定义UART中断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E4%BA%9B%E5%AE%8F"><span class="toc-number">1.3.4.</span> <span class="toc-text">一些宏</span></a></li></ol></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>

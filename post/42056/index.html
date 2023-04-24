@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>ESP-IDF学习笔记-调试等级打印 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="ESP-IDF学习笔记-调试等级打印ESP32IDF中提供了一个LOG库，根据不同调试等级打印信息，这里记录一下简单用法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ESP-IDF学习笔记-调试等级打印">
+<meta property="og:url" content="https://lostacnet.top/post/42056/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="ESP-IDF学习笔记-调试等级打印ESP32IDF中提供了一个LOG库，根据不同调试等级打印信息，这里记录一下简单用法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://lostacnet.top/ESP-IDF%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B0%83%E8%AF%95%E7%AD%89%E7%BA%A7%E6%89%93%E5%8D%B0/image-20230420235300470.png">
+<meta property="article:published_time" content="2023-04-20T14:56:23.000Z">
+<meta property="article:modified_time" content="2023-04-23T10:57:59.218Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="ESP-IDF">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://lostacnet.top/ESP-IDF%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B0%83%E8%AF%95%E7%AD%89%E7%BA%A7%E6%89%93%E5%8D%B0/image-20230420235300470.png">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            ESP-IDF学习笔记-调试等级打印
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/42056/" class="article-date">
+	  <time datetime="2023-04-20T14:56:23.000Z" itemprop="datePublished">4月 20</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/ESP32/">ESP32</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/ESP-IDF/" rel="tag">ESP-IDF</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/42056/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 575(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 2(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="ESP-IDF学习笔记-调试等级打印"><a href="#ESP-IDF学习笔记-调试等级打印" class="headerlink" title="ESP-IDF学习笔记-调试等级打印"></a>ESP-IDF学习笔记-调试等级打印</h1><p>ESP32IDF中提供了一个LOG库，根据不同调试等级打印信息，这里记录一下简单用法。</p>
+<span id="more"></span>
+
+<p><a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/api-reference/system/log.html?highlight=log">官方的LOG库文档</a></p>
+<p>官方给的库用法很多还有一些高级用法，但是我们只需要使用简单的就行了。</p>
+<h2 id="一，调试级别"><a href="#一，调试级别" class="headerlink" title="一，调试级别"></a>一，调试级别</h2><p>ESP32LOG库定义的如下调试级别(按等级高低从低到高排列)：</p>
+<ul>
+<li>ESP_LOGE - error (lowest)</li>
+<li>ESP_LOGW - warning</li>
+<li>ESP_LOGI - info</li>
+<li>ESP_LOGD - debug</li>
+<li>ESP_LOGV - verbose (highest)</li>
+</ul>
+<p>对应的在IDF中的调试级别设置如图:</p>
+<p><img src="/ESP-IDF%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B0%83%E8%AF%95%E7%AD%89%E7%BA%A7%E6%89%93%E5%8D%B0/image-20230420235300470.png" alt="image-20230420235300470"></p>
+<p>对应的设置选项为：</p>
+<ul>
+<li><strong>CONFIG_LOG_DEFAULT_LEVEL:默认调试级别</strong></li>
+<li><strong>CONFIG_LOG_MAXIMUM_LEVEL:最高调试级别</strong></li>
+</ul>
+<p><strong>高于</strong>默认调试级别的调试信息<strong>不会打印</strong>。</p>
+<p>CONFIG_LOG_MAXIMUM_LEVEL用来设置<code>esp_log_level_set() </code>可以设置的最高级别的调试等级(代码中动态调整调试等级)。</p>
+<p>剩下一个设置项用来设置调试时间戳的来源，可以设置为来自于FreeRTos的时基，从系统重启后到现在的ms；或者为实际时间，来自RTC外设（可通过SNTP在重启置0后校准）。</p>
+<h2 id="二，API函数"><a href="#二，API函数" class="headerlink" title="二，API函数"></a>二，API函数</h2><p>常用函数如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//打印调试信息</span></span><br><span class="line">ESP_LOGE();<span class="comment">//error (lowest)</span></span><br><span class="line"></span><br><span class="line">ESP_LOGW();<span class="comment">//warning</span></span><br><span class="line"></span><br><span class="line">ESP_LOGI();<span class="comment">//info</span></span><br><span class="line"></span><br><span class="line">ESP_LOGD();<span class="comment">//debug</span></span><br><span class="line"></span><br><span class="line">ESP_LOGV();<span class="comment">//verbose (highest)</span></span><br><span class="line"><span class="comment">//设置调试等级</span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">esp_log_level_set</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *tag, <span class="type">esp_log_level_t</span> level)</span>;<span class="comment">//设置TAG的调试等级</span></span><br><span class="line"></span><br><span class="line"><span class="type">esp_log_level_t</span> <span class="title function_">esp_log_level_get</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *tag)</span>;<span class="comment">//获得TAG的调试等级</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>使用方法：</p>
+<ol>
+<li>定义TAG</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">const</span> <span class="type">char</span>* TAG = <span class="string">"MyModule"</span>;</span><br><span class="line"><span class="comment">//others</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TAG <span class="string">"MyModule"</span></span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>调用打印函数</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ESP_LOGW(TAG, <span class="string">"Baud rate error %.1f%%. Requested: %d baud, actual: %d baud"</span>, error * <span class="number">100</span>, baud_req, baud_real);</span><br></pre></td></tr></table></figure>
+
+<p>通过在<code>esp_log.h</code>前定义<code>LOG_LOCAL_LEVEL</code>来重新设置默认调试等级:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> LOG_LOCAL_LEVEL ESP_LOG_VERBOSE</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"esp_log.h"</span></span></span><br></pre></td></tr></table></figure>
+
+<p>对于组件(component)可以在CMakeLists中设置来重设:</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">target_compile_definitions</span>(<span class="variable">${COMPONENT_LIB}</span> PUBLIC <span class="string">"-DLOG_LOCAL_LEVEL=ESP_LOG_VERBOSE"</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>可以通过``在运行时设置各个TAG的调试等级：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">esp_log_level_set(<span class="string">"*"</span>, ESP_LOG_ERROR);        <span class="comment">// set all components to ERROR level</span></span><br><span class="line">esp_log_level_set(<span class="string">"wifi"</span>, ESP_LOG_WARN);      <span class="comment">// enable WARN logs from WiFi stack</span></span><br><span class="line">esp_log_level_set(<span class="string">"dhcpc"</span>, ESP_LOG_INFO);     <span class="comment">// enable INFO logs from DHCP client</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="三，高级用法"><a href="#三，高级用法" class="headerlink" title="三，高级用法"></a>三，高级用法</h2><h3 id="输出端口"><a href="#输出端口" class="headerlink" title="输出端口"></a>输出端口</h3><p>默认情况下，日志输出到串口，使用类vsprintf函数。</p>
+<p>通过调用以下函数，可以将输出定向到JATG：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">esp_log_set_vprintf(esp_apptrace_vprintf);</span><br></pre></td></tr></table></figure>
+
+<p>如果想重新设置回UART：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">esp_log_set_vprintf(vprintf);</span><br></pre></td></tr></table></figure>
+
+<h3 id="其他输出API"><a href="#其他输出API" class="headerlink" title="其他输出API"></a>其他输出API</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ESP_EARLY_LOGx()</span><br></pre></td></tr></table></figure>
+
+<p>在系统早期启动过程使用：在堆分配前和系统调用前使用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ESP_DRAM_LOGx()</span><br></pre></td></tr></table></figure>
+
+<p>在中断被关闭或者Flash缓存无法访问时使用，由于对系统性能考虑，应尽可能少使用。</p>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/42056/">https://lostacnet.top/post/42056/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ESP-IDF%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B0%83%E8%AF%95%E7%AD%89%E7%BA%A7%E6%89%93%E5%8D%B0"><span class="toc-number">1.</span> <span class="toc-text">ESP-IDF学习笔记-调试等级打印</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%8C%E8%B0%83%E8%AF%95%E7%BA%A7%E5%88%AB"><span class="toc-number">1.1.</span> <span class="toc-text">一，调试级别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8CAPI%E5%87%BD%E6%95%B0"><span class="toc-number">1.2.</span> <span class="toc-text">二，API函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%8C%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95"><span class="toc-number">1.3.</span> <span class="toc-text">三，高级用法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BE%93%E5%87%BA%E7%AB%AF%E5%8F%A3"><span class="toc-number">1.3.1.</span> <span class="toc-text">输出端口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E8%BE%93%E5%87%BAAPI"><span class="toc-number">1.3.2.</span> <span class="toc-text">其他输出API</span></a></li></ol></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
