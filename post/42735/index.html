@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>ESP-IDF学习笔记-GPIO的简单使用 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="ESP-IDF学习笔记-GPIO的简单使用ESP32中的GPIO可以分为简单的GPIO和专用GPIO，这里记录普通GPIO的使用。每个管脚都可用作一个通用 IO，或连接一个内部外设信号。通过 GPIO 交换矩阵、IO MUX 和 RTC IO MUX，可配置外设模块的输入信号来源于任何的 GPIO 管脚，并且外设模块的输出信号也可连接到任意 GPIO 管脚。这些模块共同组成了芯片的输入输出控制。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ESP-IDF学习笔记-GPIO的简单使用">
+<meta property="og:url" content="https://lostacnet.top/post/42735/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="ESP-IDF学习笔记-GPIO的简单使用ESP32中的GPIO可以分为简单的GPIO和专用GPIO，这里记录普通GPIO的使用。每个管脚都可用作一个通用 IO，或连接一个内部外设信号。通过 GPIO 交换矩阵、IO MUX 和 RTC IO MUX，可配置外设模块的输入信号来源于任何的 GPIO 管脚，并且外设模块的输出信号也可连接到任意 GPIO 管脚。这些模块共同组成了芯片的输入输出控制。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-27T09:35:33.000Z">
+<meta property="article:modified_time" content="2023-04-27T12:12:20.401Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="ESP-IDF">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            ESP-IDF学习笔记-GPIO的简单使用
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/42735/" class="article-date">
+	  <time datetime="2023-04-27T09:35:33.000Z" itemprop="datePublished">4月 27</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/ESP32/">ESP32</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/ESP-IDF/" rel="tag">ESP-IDF</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/42735/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 1.2k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 5(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="ESP-IDF学习笔记-GPIO的简单使用"><a href="#ESP-IDF学习笔记-GPIO的简单使用" class="headerlink" title="ESP-IDF学习笔记-GPIO的简单使用"></a>ESP-IDF学习笔记-GPIO的简单使用</h1><p>ESP32中的GPIO可以分为简单的GPIO和专用GPIO，这里记录普通GPIO的使用。每个管脚都可用作一个通用 IO，或连接一个内部外设信号。通过 GPIO 交换矩阵、IO MUX 和 RTC IO MUX，可配置外设模块的输入信号来源于任何的 GPIO 管脚，并且外设模块的输出信号也可连接到任意 GPIO 管脚。这些模块共同组成了芯片的输入输出控制。</p>
+<span id="more"></span>
+
+<p><a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/api-reference/peripherals/gpio.html">官方文档</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_50064262/article/details/115189865">参考文章</a></p>
+<h2 id="一，GPIO配置"><a href="#一，GPIO配置" class="headerlink" title="一，GPIO配置"></a>一，GPIO配置</h2><p>头文件:<code>driver/gpio.h</code></p>
+<p>GPIO配置分为结构体配置和函数配置。</p>
+<h3 id="结构体配置"><a href="#结构体配置" class="headerlink" title="结构体配置"></a>结构体配置</h3><p>函数原型:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_config</span><span class="params">(<span class="type">const</span> <span class="type">gpio_config_t</span> *pGPIOConfig)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>可配置GPIO‘的输入输出模式、上下拉、中断类型、引脚。</p>
+<p>使用的<code>gpio_config_t</code>结构体：</p>
+<table>
+<thead>
+<tr>
+<th align="center">成员</th>
+<th align="center">类型</th>
+<th align="center">作用</th>
+<th align="center">典型值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">pin_bit_mask</td>
+<td align="center">uint64_t</td>
+<td align="center">选择引脚，以位为单位选择</td>
+<td align="center">如(1 &lt;&lt; 18)|(1 &lt;&lt; 19)</td>
+</tr>
+<tr>
+<td align="center">mode</td>
+<td align="center">gpio_mode_t</td>
+<td align="center">选择输入输出模式</td>
+<td align="center">GPIO_MODE_DISABLE</td>
+</tr>
+<tr>
+<td align="center">pull_up_en</td>
+<td align="center">gpio_pullup_t</td>
+<td align="center">选择是否上拉</td>
+<td align="center"><code>GPIO_PULLUP_DISABLE</code>/<code>GPIO_PULLUP_ENABLE</code></td>
+</tr>
+<tr>
+<td align="center">pull_down_en</td>
+<td align="center">gpio_pulldown_t</td>
+<td align="center">选择是否下拉</td>
+<td align="center"><code>GPIO_PULLDOWN_DISABLE</code>/<code>GPIO_PULLDOWN_ENABLE</code></td>
+</tr>
+<tr>
+<td align="center">intr_type</td>
+<td align="center">gpio_int_type_t</td>
+<td align="center">中断触发模式</td>
+<td align="center"><code>GPIO_INTR_DISABLE</code></td>
+</tr>
+</tbody></table>
+<p>详细参数解析：</p>
+<p><strong>gpio_mode_t：</strong></p>
+<ul>
+<li><code>GPIO_MODE_DISABLE</code>:失能输入输出</li>
+<li><code>GPIO_MODE_INPUT</code>:输入模式</li>
+<li><code>GPIO_MODE_OUTPUT</code>:输出模式</li>
+<li><code>GPIO_MODE_OUTPUT_OD</code>:开漏输出模式</li>
+<li><code>GPIO_MODE_INPUT_OUTPUT_OD</code>:开漏输入输出模式</li>
+<li><code>GPIO_MODE_INPUT_OUTPUT</code>:输入输出模式</li>
+</ul>
+<p><strong>gpio_int_type_t:</strong></p>
+<ul>
+<li><code>GPIO_INTR_DISABLE</code>:禁止中断</li>
+<li><code>GPIO_INTR_POSEDGE</code>:上升沿中断</li>
+<li><code>GPIO_INTR_NEGEDGE</code>:下降沿中断</li>
+<li><code>GPIO_INTR_ANYEDGE</code>:边缘中断</li>
+<li><code>GGPIO_INTR_LOW_LEVEL</code>:低电平中断</li>
+<li><code>GPIO_INTR_HIGH_LEVEL</code>:高电平中断</li>
+</ul>
+<p><strong>pin_bit_mask:</strong></p>
+<p>该参数使用每个bit表示要操作的GPIO口，典型使用值如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">// 表示此配置对 GPIO2生效，因为这个64位数的第2位（从零开始）为1</span><br><span class="line">pin_bit_mask = 0b0100</span><br><span class="line"></span><br><span class="line">// 表示此配置对 GPIO0 和 GPIO5 生效，因为第0位和第5位为1</span><br><span class="line">pin_bit_mask = 0b100001</span><br><span class="line"></span><br><span class="line">// 表示此配置对 GPIO16 和 GPIO 18 生效，采用位运算</span><br><span class="line">pin_bit_mask = (1ull &lt;&lt; 16) | (1ull &lt;&lt; 18)</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>使用例:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">gpio_config_t</span> gpio={</span><br><span class="line">        .pin_bit_mask=<span class="number">1</span>&lt;&lt;GPIO_NUM_3,</span><br><span class="line">        .mode=GPIO_MODE_OUTPUT,</span><br><span class="line">        .pull_down_en=<span class="number">0</span>,</span><br><span class="line">        .pull_up_en=<span class="number">1</span>,</span><br><span class="line">        .intr_type=GPIO_INTR_DISABLE,</span><br><span class="line">    };</span><br><span class="line">    gpio_config(&amp;gpio);</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用<code>gpio_reset_pin()</code>重置IO口。</strong></p>
+<p>’</p>
+<h3 id="函数配置"><a href="#函数配置" class="headerlink" title="函数配置"></a>函数配置</h3><p>就是将上面的结构体分成了多个函数进行配置，这里不多讲，请自行参考官方文档。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_set_intr_type</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num, <span class="type">gpio_int_type_t</span> intr_type)</span>;</span><br><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_intr_enable</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num)</span>;</span><br><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_intr_disable</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num)</span>;</span><br><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_set_direction</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num, <span class="type">gpio_mode_t</span> mode)</span>;</span><br><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_set_pull_mode</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num, <span class="type">gpio_pull_mode_t</span> pull)</span>;</span><br><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_pullup_en</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num)</span>;</span><br><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_pullup_dis</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num)</span>;</span><br><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_set_drive_capability</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num, <span class="type">gpio_drive_cap_t</span> strength)</span>;<span class="comment">//设置IO口驱动能力</span></span><br><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_get_drive_capability</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num, <span class="type">gpio_drive_cap_t</span> *strength)</span>;</span><br><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_hold_en</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num)</span>;<span class="comment">//保持IO口状态</span></span><br><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_hold_dis</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num)</span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="二，IO口的使用"><a href="#二，IO口的使用" class="headerlink" title="二，IO口的使用"></a>二，IO口的使用</h2><p>设置IO口输出：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_set_level</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num, <span class="type">uint32_t</span> level)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>读取IO口状态：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">gpio_get_level</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>当IO口没有设置为输入，则读取的值恒为0。</strong></p>
+<h2 id="三，中断的使用"><a href="#三，中断的使用" class="headerlink" title="三，中断的使用"></a>三，中断的使用</h2><h3 id="1，设置中断类型"><a href="#1，设置中断类型" class="headerlink" title="1，设置中断类型"></a>1，设置中断类型</h3><p>通过结构体配置，或者使用<code>gpio_set_intr_type()</code>函数设置触发中断的条件。</p>
+<h3 id="2，创建中断服务函数"><a href="#2，创建中断服务函数" class="headerlink" title="2，创建中断服务函数"></a>2，创建中断服务函数</h3><p>创建形如以下的中断服务函数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> QueueHandle_t gpio_evt_queue = <span class="literal">NULL</span>;</span><br><span class="line">...</span><br><span class="line"><span class="type">static</span> <span class="type">void</span> IRAM_ATTR <span class="title function_">gpio_isr_handler</span><span class="params">(<span class="type">void</span>* arg)</span></span><br><span class="line">{</span><br><span class="line">    <span class="type">uint32_t</span> gpio_num = (<span class="type">uint32_t</span>) arg;</span><br><span class="line">    xQueueSendFromISR(gpio_evt_queue, &amp;gpio_num, <span class="literal">NULL</span>);</span><br><span class="line">}</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这里使用的FreeRTOS的消息队列传递中断信息。因为<strong>GPIO中断在IRAM中工作</strong>，好处是在flash禁用的情况下也可以响应中断。且速度更快，对于这种频繁触发的中断是有利的。但是这个中断也因此<strong>无法使用<code>printf</code>等串口打印工作</strong>，需要<strong>转入其他Task中执行</strong>。详见官网API参考—— 中断分配<a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-reference/system/intr_alloc.html">Interrupt Allocation</a></p>
+<h3 id="3，创建中断处理任务函数"><a href="#3，创建中断处理任务函数" class="headerlink" title="3，创建中断处理任务函数"></a>3，创建中断处理任务函数</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">gpio_task_example</span><span class="params">(<span class="type">void</span>* arg)</span></span><br><span class="line">{</span><br><span class="line">    <span class="type">uint32_t</span> io_num;</span><br><span class="line">    <span class="keyword">for</span>(;;) {</span><br><span class="line">        <span class="keyword">if</span>(xQueueReceive(gpio_evt_queue, &amp;io_num, portMAX_DELAY)) {</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"GPIO[%"</span>PRIu32<span class="string">"] intr, val: %d\n"</span>, io_num, gpio_get_level(io_num));</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-安装中断服务"><a href="#4-安装中断服务" class="headerlink" title="4,安装中断服务"></a>4,安装中断服务</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_install_isr_service</span><span class="params">(<span class="type">int</span> intr_alloc_flags)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>参数：</strong></p>
+<p><strong>intr_alloc_flags</strong> – Flags used to allocate the interrupt. One or multiple (ORred) ESP_INTR_FLAG_* values. See esp_intr_alloc.h for more info.</p>
+<p><strong>该函数与<code>gpio_isr_register() </code>不兼容。</strong><code>gpio_isr_register() </code>会创建<strong>一个中断服务函数处理全部的中断</strong>，<strong>用户需要</strong>在这个处理函数中<strong>分辨IO口</strong>分别处理。而使用这个函数，会用<code>gpio_isr_register() </code>创建<strong>一个设置好的中断服务函数</strong>，<strong>分辨IO口的任务已经写好</strong>，使用<code>gpio_isr_handler_add()</code>添加每个中断的服务函数。</p>
+<p>相应的有移除函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">gpio_uninstall_isr_service</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="5，为每个IO口添加handle"><a href="#5，为每个IO口添加handle" class="headerlink" title="5，为每个IO口添加handle"></a>5，为每个IO口添加handle</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_isr_handler_add</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num, <span class="type">gpio_isr_t</span> isr_handler, <span class="type">void</span> *args)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>其中**<code>args</code>是上面创建的中断服务函数传入**的参数。</p>
+<p>该函数需要在<code>gpio_install_isr_service()</code>后调用。使用该函数添加的服务函数不在需要使用IRAM_ATTR,除非在使用<code>gpio_install_isr_service()</code>时设置了<code>ESP_INTR_FLAG_IRAM </code>。</p>
+<p>删除函数:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">gpio_isr_handler_remove</span><span class="params">(<span class="type">gpio_num_t</span> gpio_num)</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="6-开启任务"><a href="#6-开启任务" class="headerlink" title="6,开启任务"></a>6,开启任务</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xTaskCreate(gpio_task_example, <span class="string">"gpio_task_example"</span>, <span class="number">2048</span>, <span class="literal">NULL</span>, <span class="number">10</span>, <span class="literal">NULL</span>);</span><br></pre></td></tr></table></figure>
+
+<p>注意，上面用到的FreeRTOS的API需要引入相应头文件。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"freertos/FreeRTOS.h"</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"freertos/task.h"</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"freertos/queue.h"</span></span></span><br></pre></td></tr></table></figure>
+
+<p>一个例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"freertos/FreeRTOS.h"</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"freertos/task.h"</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"freertos/queue.h"</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"driver/gpio.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> QueueHandle_t gpioevent=<span class="literal">NULL</span>;</span><br><span class="line"><span class="type">static</span> <span class="type">void</span> IRAM_ATTR <span class="title function_">gpio_intr</span><span class="params">(<span class="type">void</span> *arg)</span></span><br><span class="line">{</span><br><span class="line">    <span class="type">uint32_t</span> gpio_num=(<span class="type">uint32_t</span> )arg;</span><br><span class="line">    xQueueSendFromISR(gpioevent,&amp;gpio_num,<span class="literal">NULL</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">gpio_task</span><span class="params">(<span class="type">void</span> *arg)</span></span><br><span class="line">{</span><br><span class="line">    <span class="type">uint32_t</span> io_num;</span><br><span class="line">    <span class="keyword">for</span>(;;){</span><br><span class="line">        <span class="keyword">if</span>(xQueueReceive(gpioevent,&amp;io_num,portMAX_DELAY))</span><br><span class="line">        {</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"GPIO[%"</span>PRIu32<span class="string">"] intr, val: %d\n"</span>, io_num, gpio_get_level(io_num));</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">app_main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line">    <span class="type">gpio_config_t</span> gpio;</span><br><span class="line"></span><br><span class="line">	gpio.pull_down_en=<span class="number">0</span>;</span><br><span class="line">    gpio.mode=GPIO_MODE_INPUT;</span><br><span class="line">    gpio.pin_bit_mask=<span class="number">1</span>&lt;&lt;GPIO_NUM_8;</span><br><span class="line">    gpio.intr_type=GPIO_INTR_POSEDGE;</span><br><span class="line">    gpio.pull_up_en=<span class="number">1</span>;</span><br><span class="line">    gpio_config(&amp;gpio);</span><br><span class="line"></span><br><span class="line">    gpioevent=xQueueCreate(<span class="number">10</span>, <span class="keyword">sizeof</span>(<span class="type">uint32_t</span>));</span><br><span class="line">    xTaskCreate(gpio_task, <span class="string">"gpio_task"</span>, <span class="number">2048</span>, <span class="literal">NULL</span>, <span class="number">10</span>, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    gpio_install_isr_service(<span class="number">0</span>);</span><br><span class="line">    gpio_isr_handler_add(GPIO_NUM_8, gpio_intr, (<span class="type">void</span>*) GPIO_NUM_8);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)</span><br><span class="line">    {</span><br><span class="line">		...</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/42735/">https://lostacnet.top/post/42735/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ESP-IDF%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-GPIO%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8"><span class="toc-number">1.</span> <span class="toc-text">ESP-IDF学习笔记-GPIO的简单使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%8CGPIO%E9%85%8D%E7%BD%AE"><span class="toc-number">1.1.</span> <span class="toc-text">一，GPIO配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%93%E6%9E%84%E4%BD%93%E9%85%8D%E7%BD%AE"><span class="toc-number">1.1.1.</span> <span class="toc-text">结构体配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E9%85%8D%E7%BD%AE"><span class="toc-number">1.1.2.</span> <span class="toc-text">函数配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8CIO%E5%8F%A3%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">1.2.</span> <span class="toc-text">二，IO口的使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%8C%E4%B8%AD%E6%96%AD%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">1.3.</span> <span class="toc-text">三，中断的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%EF%BC%8C%E8%AE%BE%E7%BD%AE%E4%B8%AD%E6%96%AD%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.3.1.</span> <span class="toc-text">1，设置中断类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%EF%BC%8C%E5%88%9B%E5%BB%BA%E4%B8%AD%E6%96%AD%E6%9C%8D%E5%8A%A1%E5%87%BD%E6%95%B0"><span class="toc-number">1.3.2.</span> <span class="toc-text">2，创建中断服务函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%EF%BC%8C%E5%88%9B%E5%BB%BA%E4%B8%AD%E6%96%AD%E5%A4%84%E7%90%86%E4%BB%BB%E5%8A%A1%E5%87%BD%E6%95%B0"><span class="toc-number">1.3.3.</span> <span class="toc-text">3，创建中断处理任务函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%AE%89%E8%A3%85%E4%B8%AD%E6%96%AD%E6%9C%8D%E5%8A%A1"><span class="toc-number">1.3.4.</span> <span class="toc-text">4,安装中断服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5%EF%BC%8C%E4%B8%BA%E6%AF%8F%E4%B8%AAIO%E5%8F%A3%E6%B7%BB%E5%8A%A0handle"><span class="toc-number">1.3.5.</span> <span class="toc-text">5，为每个IO口添加handle</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%BC%80%E5%90%AF%E4%BB%BB%E5%8A%A1"><span class="toc-number">1.3.6.</span> <span class="toc-text">6,开启任务</span></a></li></ol></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
