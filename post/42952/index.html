@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>ESP-IDF学习笔记-WIFI连接 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="ESP-IDF学习笔记-WIFI连接使用ESP32的WIFI需要使用3个库的API，涉及NVS_FLASH，ESP_NETIF,ESP_WIFI,ESP_EVENT。nvs保存配置，netif提供tcp&#x2F;ip操作接口，wifi库提供wiif的配置接口。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ESP-IDF学习笔记-WIFI连接">
+<meta property="og:url" content="https://lostacnet.top/post/42952/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="ESP-IDF学习笔记-WIFI连接使用ESP32的WIFI需要使用3个库的API，涉及NVS_FLASH，ESP_NETIF,ESP_WIFI,ESP_EVENT。nvs保存配置，netif提供tcp&#x2F;ip操作接口，wifi库提供wiif的配置接口。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-29T14:52:41.000Z">
+<meta property="article:modified_time" content="2023-05-01T12:50:15.959Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="ESP-IDF">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            ESP-IDF学习笔记-WIFI连接
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/42952/" class="article-date">
+	  <time datetime="2023-04-29T14:52:41.000Z" itemprop="datePublished">4月 29</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/ESP32/">ESP32</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/ESP-IDF/" rel="tag">ESP-IDF</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/42952/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 5.3k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 20(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="ESP-IDF学习笔记-WIFI连接"><a href="#ESP-IDF学习笔记-WIFI连接" class="headerlink" title="ESP-IDF学习笔记-WIFI连接"></a>ESP-IDF学习笔记-WIFI连接</h1><p>使用ESP32的WIFI需要使用3个库的API，涉及NVS_FLASH，ESP_NETIF,ESP_WIFI,ESP_EVENT。nvs保存配置，netif提供tcp/ip操作接口，wifi库提供wiif的配置接口。</p>
+<span id="more"></span>
+
+
+
+<p>首先提供一下官方文档：</p>
+<p><a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/api-reference/storage/nvs_flash.html">非易失存储库</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/api-reference/network/esp_wifi.html">WIFI库</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/api-reference/network/esp_netif.html">ESP-NETIF</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/api-reference/system/esp_event.html">ESP_EVENT</a></p>
+<p>还有描述整个WiFi编程结构的指南(<strong>非常关键的指南</strong>，放在了API指南里，要不是我搜一个函数我还找不到)：</p>
+<p><a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/api-guides/wifi.html">WIFI驱动指南</a></p>
+<h2 id="一，配置步骤概览"><a href="#一，配置步骤概览" class="headerlink" title="一，配置步骤概览"></a>一，配置步骤概览</h2><p><strong>初始化NVS</strong></p>
+<p>NVS（非易失存储库）是ESP32分区中用来<strong>储存少量需要掉电保存的数据的分区</strong>（如果数据量很大，需要储存在文件系统的分区中）。在WIFI的配置中，该区<strong>存储了WIFI的设置</strong>，包扩上次连接的WIFI信息，上次开启的热点信息等配置信息（在设置wifi时自动储存）。因此，为了实现WiFi记忆功能，在使用WIFI前，需要先初始化NVS。如果不初始化，需要在每次运行时重新配置WiFi。</p>
+<p><strong>创建ESP-NETIF工作</strong></p>
+<p>ESP-NETIF库**提供了tcp/ip操作的相关接口(Lwip)**，与wifi驱动接口绑定后，可以处理tcp/ip的各种事务，包括DHCP等各种操作。为了使我们的WIFI能够正常联网，我们需要创建一个ESP-NETIF工作。</p>
+<p><strong>设置WIFI</strong></p>
+<p>WIFI库提供了操作WIFI的驱动，包括设置站点模式，配置WiFi信息，连接WIFI等操作。</p>
+<p><strong>事件循环</strong></p>
+<p>事件循环是ESPIDF提供的用于<strong>不同组件交流操作的库</strong>。一个组件可以创建事件，另外一个组件可以通过注册事件函数响应相应的事件。通过事件循环，各个库可以协同运行。其典型例子就是使用与WIFI库有关的组件时，比如使用DHCP获取IP地址，需要在WIFI库成功连接到WIFI之后，而DHCP的实现是高层库做的，因此就需要通过事件来通知其他组件WIFI已经连接，DHCP库通过将自己的函数注册成相应事件的处理函数，就可以实现协同运行。</p>
+<h2 id="二，具体配置流程"><a href="#二，具体配置流程" class="headerlink" title="二，具体配置流程"></a>二，具体配置流程</h2><h3 id="初始化NVS"><a href="#初始化NVS" class="headerlink" title="初始化NVS"></a>初始化NVS</h3><p>首先在设置菜单中将WIFI选项中的<code>WiFi NVS flash</code>选中，使能WiFi_NVS_FLASH。让wifi设置能保存在NVS中。</p>
+<p>这里直接给出代码，感兴趣可以看官方文档。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"nvs_flash.h"</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">esp_err_t</span> ret = nvs_flash_init();</span><br><span class="line"><span class="keyword">if</span> (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {</span><br><span class="line">      ESP_ERROR_CHECK(nvs_flash_erase());</span><br><span class="line">      ret = nvs_flash_init();</span><br><span class="line">    }</span><br><span class="line">ESP_ERROR_CHECK(ret);</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="初始化ESP-NETIF和创建事件循环"><a href="#初始化ESP-NETIF和创建事件循环" class="headerlink" title="初始化ESP-NETIF和创建事件循环"></a>初始化ESP-NETIF和创建事件循环</h3><p>首先调用函数<strong>初始化netif</strong>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_netif_init</span><span class="params">(<span class="type">void</span>)</span></span><br></pre></td></tr></table></figure>
+
+<p>这个函数在应用中需<strong>要被调用一次</strong>。(This function should be called exactly once from application code, when the application starts up.)</p>
+<p>然后<strong>创建默认事件循环</strong>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_event_loop_create_default</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>该函数创建了一个默认参数的事件循环，开始处理各个组件的事件。<strong>默认事件循环是一个特殊的</strong>，包含了各种系统事件处理（如wifi事件）。默认循环使用的事件<strong>注册API与用户的事件循环有一点不同</strong>，<strong>以下使用的API都是默认循环的API</strong>。如果想知道用户API是什么，可以参考官方手册。</p>
+<p>创建完成后，需要<strong>将netif的处理函数放入对应的事件</strong>中，比如在STA开启后自动开启DHCP客户端获取IP。</p>
+<p>这里NETIF库已经写好了默认配置，直接调用函数即可。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_netif_t</span> *<span class="title function_">esp_netif_create_default_wifi_sta</span><span class="params">(<span class="type">void</span>)</span>;<span class="comment">//sta模式</span></span><br></pre></td></tr></table></figure>
+
+<p>同样，如果开启了AP模式，则调用下面的函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_netif_t</span> *<span class="title function_">esp_netif_create_default_wifi_ap</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>sta/ap模式需要同时调用两个函数。</p>
+<p>使用例子:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"esp_event.h"</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"esp_wifi.h"</span></span></span><br><span class="line">...</span><br><span class="line">    ESP_ERROR_CHECK(esp_netif_init());</span><br><span class="line">    ESP_ERROR_CHECK(esp_event_loop_create_default());<span class="comment">//创建默认事件处理循环</span></span><br><span class="line">    esp_netif_create_default_wifi_sta();</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="注册处理函数"><a href="#注册处理函数" class="headerlink" title="注册处理函数"></a>注册处理函数</h3><p>在事件循环中加入了netif中默认的处理函数后，我们还需要<strong>注册自己的处理函数</strong>，用来实现一些功能，比如在启动wifi后开始连接ap，或者在断开连接后进行重连等。</p>
+<p>一个事件处理函数的模板如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">arg是传入的参数，在注册函数时设置</span></span><br><span class="line"><span class="comment">event_base是事件基，表示一个大类的事件</span></span><br><span class="line"><span class="comment">event_id是具体的事件</span></span><br><span class="line"><span class="comment">event_data是传递的数据，比如在IP_EVENT 下的 IP_EVENT_STA_GOT_IP 事件会把获取到的IP地址传递过来</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">event_handler</span><span class="params">(<span class="type">void</span>* arg, <span class="type">esp_event_base_t</span> event_base,</span></span><br><span class="line"><span class="params">                                <span class="type">int32_t</span> event_id, <span class="type">void</span>* event_data)</span></span><br><span class="line">{</span><br><span class="line">...</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+
+
+<p>创建好处理函数后，使用以下函数进行注册：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_event_handler_instance_register</span><span class="params">(<span class="type">esp_event_base_t</span> event_base, <span class="type">int32_t</span> event_id, <span class="type">esp_event_handler_t</span> event_handler, <span class="type">void</span> *event_handler_arg, <span class="type">esp_event_handler_instance_t</span> *instance)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>参数:</strong></p>
+<ul>
+<li><strong>event_base</strong> – <strong>[in]</strong> 基事件</li>
+<li><strong>event_id</strong> – <strong>[in]</strong> 具体事件id</li>
+<li><strong>event_handler</strong> – <strong>[in]</strong> 要注册的处理函数</li>
+<li><strong>event_handler_arg</strong> – <strong>[in]</strong> 要传递参数的指针，该函数不保留备份，因此需要确保其在被使用时有效</li>
+<li><strong>instance</strong> – <strong>[out]</strong> 输出的句柄，可以用来删除(unregister)这个事件函数，如果不需要可以填NULL。</li>
+</ul>
+<p>同时，如果不需要句柄，调用以下函数即可：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_event_handler_register</span><span class="params">(<span class="type">esp_event_base_t</span> event_base, <span class="type">int32_t</span> event_id, <span class="type">esp_event_handler_t</span> event_handler, <span class="type">void</span> *event_handler_arg)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>上面两个函数在底层都调用了同一个函数进行注册，因此功能是一样的。</p>
+<p>注意，<strong>对于<code>event_base</code>存在一个<code>ESP_EVENT_ANY_BASE</code>匹配全部的基事件;对于<code>event_id</code>存在<code>ESP_EVENT_ANY_ID</code>对应基事件的全部事件</strong>。即，<code>ESP_EVENT_ANY_BASE</code>+<code>ESP_EVENT_ANY_ID</code>==全部事件都响应。</p>
+<p>对于<strong>同一事件多个处理函数</strong>，遵守<strong>先注册先调用，后注册后调用</strong>原则。(<a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/api-reference/system/esp_event.html?highlight=esp_event_handler_instance_register#handler-registration-and-handler-dispatch-order">参考</a>)</p>
+<p>由于该规则，<strong>自己的事件处理函数注册必须要在</strong><code>esp_netif_create_default_wifi_sta()</code><strong>之后</strong>。</p>
+<blockquote>
+<p><code>esp_netif_create_default_wifi_sta()</code>中注册了该组件的事件函数，为保证用户正常上网，该事件函数需在用户函数之前执行。</p>
+</blockquote>
+<p>一部分WiFi相关事件在后文附上，也可以直接参考<a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/api-guides/wifi.html#id10">官方手册</a></p>
+<p>示例，这里来自官方例程的一部分，调用的FreeRTOS的eventGroupAPI通知IP事件的完成。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"esp_wifi.h"</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"esp_event.h"</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"freertos/event_groups.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> EXAMPLE_ESP_MAXIMUM_RETRY  10</span></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> s_retry_num = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> EventGroupHandle_t s_wifi_event_group;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">event_handler</span><span class="params">(<span class="type">void</span>* arg, <span class="type">esp_event_base_t</span> event_base,</span></span><br><span class="line"><span class="params">                                <span class="type">int32_t</span> event_id, <span class="type">void</span>* event_data)</span></span><br><span class="line">{</span><br><span class="line">    <span class="keyword">if</span> (event_base == WIFI_EVENT &amp;&amp; event_id == WIFI_EVENT_STA_START) {</span><br><span class="line">        esp_wifi_connect();<span class="comment">//STa开启后开始连接wifi</span></span><br><span class="line">    } <span class="keyword">else</span> <span class="keyword">if</span> (event_base == WIFI_EVENT &amp;&amp; event_id == WIFI_EVENT_STA_DISCONNECTED) {</span><br><span class="line">        <span class="keyword">if</span> (s_retry_num &lt; EXAMPLE_ESP_MAXIMUM_RETRY) {</span><br><span class="line">            esp_wifi_connect();<span class="comment">//连接失败，重新连接</span></span><br><span class="line">            s_retry_num++;</span><br><span class="line">            ESP_LOGI(TAG, <span class="string">"retry to connect to the AP"</span>);</span><br><span class="line">        } <span class="keyword">else</span> {</span><br><span class="line">            xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);</span><br><span class="line">        }</span><br><span class="line">        ESP_LOGI(TAG,<span class="string">"connect to the AP fail"</span>);</span><br><span class="line">    } <span class="keyword">else</span> <span class="keyword">if</span> (event_base == IP_EVENT &amp;&amp; event_id == IP_EVENT_STA_GOT_IP) {</span><br><span class="line">        <span class="type">ip_event_got_ip_t</span>* event = (<span class="type">ip_event_got_ip_t</span>*) event_data;</span><br><span class="line">        ESP_LOGI(TAG, <span class="string">"got ip:"</span> IPSTR, IP2STR(&amp;event-&gt;ip_info.ip));</span><br><span class="line">        s_retry_num = <span class="number">0</span>;</span><br><span class="line">        xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">app_main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line">	...</span><br><span class="line">	<span class="type">esp_event_handler_instance_t</span> instance_any_id;<span class="comment">//创建句柄，用来管理该函数生命周期</span></span><br><span class="line">    <span class="type">esp_event_handler_instance_t</span> instance_got_ip;</span><br><span class="line">    ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,</span><br><span class="line">                                                        ESP_EVENT_ANY_ID,</span><br><span class="line">                                                        &amp;event_handler,</span><br><span class="line">                                                        <span class="literal">NULL</span>,</span><br><span class="line">                                                        &amp;instance_any_id));</span><br><span class="line">    ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT,</span><br><span class="line">                                                        IP_EVENT_STA_GOT_IP,</span><br><span class="line">                                                        &amp;event_handler,</span><br><span class="line">                                                        <span class="literal">NULL</span>,</span><br><span class="line">                                                        &amp;instance_got_ip));</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="设置WiFi"><a href="#设置WiFi" class="headerlink" title="设置WiFi"></a>设置WiFi</h3><p>处理好上层要响应的事件后，可以开始配置底层的WiFi驱动。</p>
+<p>首先<strong>初始化WiFi驱动的资源和参数</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">wifi_init_config_t</span> cfg = WIFI_INIT_CONFIG_DEFAULT();<span class="comment">//获取WIFI默认配置。这样可以给每个值都赋上初值</span></span><br><span class="line">ESP_ERROR_CHECK(esp_wifi_init(&amp;cfg));<span class="comment">//初始化WIFI</span></span><br></pre></td></tr></table></figure>
+
+<p>使用<code>WIFI_INIT_CONFIG_DEFAULT()</code><strong>获得每个变量的初值</strong>，这样可以防止某个参数忘记或设错导致的初始化失败。</p>
+<p><strong>在WiFi库的API被调用之前，<code>esp_wifi_init()</code>必须被调用。</strong></p>
+<p>之后<strong>设置WiFi的模式</strong>和<strong>相应模式的配置</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_wifi_set_mode</span><span class="params">(<span class="type">wifi_mode_t</span> mode)</span>;<span class="comment">//设置模式</span></span><br></pre></td></tr></table></figure>
+
+<p>mode有以下几种:</p>
+<ul>
+<li>WIFI_MODE_STA:sta模式</li>
+<li>WIFI_MODE_AP:ap模式</li>
+<li>WIFI_MODE_APSTA:sta/ap模式</li>
+</ul>
+<p>默认模式是STA。</p>
+<p>设置相应模式的参数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_wifi_set_config</span><span class="params">(<span class="type">wifi_interface_t</span> interface, <span class="type">wifi_config_t</span> *conf)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>wifi_interface_t</code>如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span> {</span></span><br><span class="line">    WIFI_IF_STA = ESP_IF_WIFI_STA,</span><br><span class="line">    WIFI_IF_AP  = ESP_IF_WIFI_AP,</span><br><span class="line">} <span class="type">wifi_interface_t</span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>wifi_config_t</code>结构体定义如下:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">union</span> {</span></span><br><span class="line">    <span class="type">wifi_ap_config_t</span>  ap;  <span class="comment">/**&lt; configuration of AP */</span></span><br><span class="line">    <span class="type">wifi_sta_config_t</span> sta; <span class="comment">/**&lt; configuration of STA */</span></span><br><span class="line">} <span class="type">wifi_config_t</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这是一个联合，设置ap和sta时分别设置不同的部分。</p>
+<p>对于<code>wifi_sta_config_t</code>需要关注的成员如下:</p>
+<table>
+<thead>
+<tr>
+<th align="center">成员名</th>
+<th align="center">类型</th>
+<th align="center">作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">ssid[32]</td>
+<td align="center">uint8_t</td>
+<td align="center">WiFi的SSID</td>
+</tr>
+<tr>
+<td align="center">password[64]</td>
+<td align="center">uint8_t</td>
+<td align="center">WiFi的密码</td>
+</tr>
+<tr>
+<td align="center">scan_method</td>
+<td align="center">wifi_scan_method_t</td>
+<td align="center">选择扫描模式</td>
+</tr>
+<tr>
+<td align="center">bssid_set</td>
+<td align="center">bool</td>
+<td align="center">1:检查AP的MAC 0:不检查</td>
+</tr>
+<tr>
+<td align="center">bssid</td>
+<td align="center">uint8_t</td>
+<td align="center">目的AP的MAC</td>
+</tr>
+<tr>
+<td align="center">channel</td>
+<td align="center">uint8_t</td>
+<td align="center">0:通道未知 ;1-13</td>
+</tr>
+<tr>
+<td align="center">sort_method</td>
+<td align="center">wifi_sort_method_t</td>
+<td align="center">扫描排序顺序设置</td>
+</tr>
+<tr>
+<td align="center">threshold</td>
+<td align="center">wifi_scan_threshold_t</td>
+<td align="center">安全性强于或信号强度强于该设置的AP可被使用</td>
+</tr>
+</tbody></table>
+<p><code>wifi_scan_method_t</code>:</p>
+<ul>
+<li><code> WIFI_FAST_SCAN</code>快速扫描模式，找到匹配的SSID后停止</li>
+<li><code>WIFI_ALL_CHANNEL_SCAN</code>扫描完全部通道为止</li>
+</ul>
+<p><code>wifi_sort_method_t</code>:</p>
+<ul>
+<li><code>WIFI_CONNECT_AP_BY_SIGNAL</code>按信号强弱整理</li>
+<li><code>WIFI_CONNECT_AP_BY_SECURITY</code>按加密等级整理</li>
+</ul>
+<p><code>wifi_scan_threshold_t</code>:</p>
+<ul>
+<li><code>int8_t rssi</code>信号的强度</li>
+<li><code>wifi_auth_mode_t authmode</code>最低信号的认证方式，如果想连接开放WiFi及以上，需设置为WIFI_AUTH_OPEN</li>
+</ul>
+<p><code>wifi_auth_mode_t</code>:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span> {</span></span><br><span class="line">    WIFI_AUTH_OPEN = <span class="number">0</span>,         <span class="comment">/**&lt; authenticate mode : open */</span></span><br><span class="line">    WIFI_AUTH_WEP,              <span class="comment">/**&lt; authenticate mode : WEP */</span></span><br><span class="line">    WIFI_AUTH_WPA_PSK,          <span class="comment">/**&lt; authenticate mode : WPA_PSK */</span></span><br><span class="line">    WIFI_AUTH_WPA2_PSK,         <span class="comment">/**&lt; authenticate mode : WPA2_PSK */</span></span><br><span class="line">    WIFI_AUTH_WPA_WPA2_PSK,     <span class="comment">/**&lt; authenticate mode : WPA_WPA2_PSK */</span></span><br><span class="line">    WIFI_AUTH_WPA2_ENTERPRISE,  <span class="comment">/**&lt; authenticate mode : WPA2_ENTERPRISE */</span></span><br><span class="line">    WIFI_AUTH_WPA3_PSK,         <span class="comment">/**&lt; authenticate mode : WPA3_PSK */</span></span><br><span class="line">    WIFI_AUTH_WPA2_WPA3_PSK,    <span class="comment">/**&lt; authenticate mode : WPA2_WPA3_PSK */</span></span><br><span class="line">    WIFI_AUTH_WAPI_PSK,         <span class="comment">/**&lt; authenticate mode : WAPI_PSK */</span></span><br><span class="line">    WIFI_AUTH_OWE,              <span class="comment">/**&lt; authenticate mode : OWE */</span></span><br><span class="line">    WIFI_AUTH_MAX</span><br><span class="line">} <span class="type">wifi_auth_mode_t</span>;</span><br></pre></td></tr></table></figure>
+
+<p>一个最小设置的例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">wifi_config_t</span> wifi_config = {</span><br><span class="line">        .sta = {</span><br><span class="line">            .ssid = <span class="string">"SSID"</span>,</span><br><span class="line">            .password = <span class="string">"PASSWORD"</span>,</span><br><span class="line">            .threshold.authmode = WIFI_AUTH_WPA_WPA2_PSK,</span><br><span class="line">            .sae_pwe_h2e = WPA3_SAE_PWE_BOTH,<span class="comment">//添加这个是为了兼容最新的认证标准WPA3</span></span><br><span class="line">        },</span><br><span class="line">    };</span><br></pre></td></tr></table></figure>
+
+
+
+<p>对于<code>wifi_ap_config_t</code>需要关注的成员如下:</p>
+<table>
+<thead>
+<tr>
+<th align="center">成员</th>
+<th align="center">类型</th>
+<th align="center">作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">ssid[32]</td>
+<td align="center">uint8_t</td>
+<td align="center">SSID</td>
+</tr>
+<tr>
+<td align="center">password[64]</td>
+<td align="center">uint8_t</td>
+<td align="center">密码</td>
+</tr>
+<tr>
+<td align="center">ssid_len</td>
+<td align="center">uint8_t</td>
+<td align="center">strlen(WIFI_SSID)</td>
+</tr>
+<tr>
+<td align="center">channel</td>
+<td align="center">uint8_t</td>
+<td align="center">选择通道</td>
+</tr>
+<tr>
+<td align="center">authmode</td>
+<td align="center">wifi_auth_mode_t</td>
+<td align="center">选择认证方式</td>
+</tr>
+<tr>
+<td align="center">ssid_hidden</td>
+<td align="center">uint8_t</td>
+<td align="center">是否广播SSID(SSID是否可见)</td>
+</tr>
+<tr>
+<td align="center">max_connection</td>
+<td align="center">uint8_t</td>
+<td align="center">最大连接数</td>
+</tr>
+</tbody></table>
+<p>一个最小的config如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">wifi_config_t</span> wifi_config = {</span><br><span class="line">        .ap = {</span><br><span class="line">            .ssid = EXAMPLE_ESP_WIFI_SSID,</span><br><span class="line">            .ssid_len = <span class="built_in">strlen</span>(EXAMPLE_ESP_WIFI_SSID),</span><br><span class="line">            .channel = EXAMPLE_ESP_WIFI_CHANNEL,</span><br><span class="line">            .password = EXAMPLE_ESP_WIFI_PASS,</span><br><span class="line">            .max_connection = EXAMPLE_MAX_STA_CONN,</span><br><span class="line">            .authmode = WIFI_AUTH_WPA_WPA2_PSK,</span><br><span class="line">            .pmf_cfg = {</span><br><span class="line">                    .required = <span class="literal">false</span>,<span class="comment">//这里关闭了对pmf的要求，让其能连接更多设备</span></span><br><span class="line">            },</span><br><span class="line">        },</span><br><span class="line">    };</span><br></pre></td></tr></table></figure>
+
+
+
+<p>如果开启了nvs，<code>esp_wifi_set_config()</code>的<strong>设置会被储存在nvs中</strong>，下次不用配置，可以使用<code>esp_wifi_get_config()</code>获取设置。</p>
+<p>当一切都配置好后，可以开启WiFi：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_wifi_start</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>开启后，可以在事件循环中使用<code>esp_err_t esp_wifi_connect(void)</code>去连接WiFi，参考上面事件函数中的代码。</p>
+<p>对于已经连接的AP，使用以下API获得信息:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_wifi_sta_get_ap_info</span><span class="params">(<span class="type">wifi_ap_record_t</span> *ap_info)</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p><strong>注意：在获得IP前，禁止一切socket操作。</strong></p>
+<h2 id="三，扫描WiFi"><a href="#三，扫描WiFi" class="headerlink" title="三，扫描WiFi"></a>三，扫描WiFi</h2><p>在通常的应用中，我们不可能将WiFi信息固定。因此，在连接WiFi前先扫描WiFi是十分必要的，扫描仅在sta或sta/ap模式使用。</p>
+<p>扫描使用以下API：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_wifi_scan_start</span><span class="params">(<span class="type">const</span> <span class="type">wifi_scan_config_t</span> *config, <span class="type">bool</span> block)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>其中，<code>block</code>用来确<strong>定是否阻塞式扫描</strong>。如果为1，将会阻塞直到扫描完成。否则，会立刻返回，结果一般在事件循环中处理。</p>
+<p><code>config</code>用来配置扫描设置，具有以下字段：</p>
+<ul>
+<li><p><code>uint8_t *ssid</code>:AP的SSID，如果不为NULL，则仅扫描相同NULL</p>
+</li>
+<li><p><code>uint8_t *bssid</code>:AP的MAC，如果不为NULL，则仅扫描相同MAC</p>
+</li>
+<li><p><code>uint8_t channel</code>:如果该字段值为 0，将进行全信道扫描；反之，将针对特定信道进行扫描。</p>
+</li>
+<li><p><code>bool show_hidden</code>:如果该字段值为 0，本次扫描将忽略具有隐藏 SSID 的 AP；反之，这些 AP 也会在扫描时被视为正常 AP。</p>
+</li>
+<li><p><code>wifi_scan_type_t scan_type</code>:WIFI_SCAN_TYPE_ACTIVE主动扫描； WIFI_SCAN_TYPE_PASSIVE 被动扫描</p>
+</li>
+<li><p><code>wifi_scan_time_t scan_time</code>:用来控制扫描时间，不用关心。</p>
+</li>
+</ul>
+<p>将该参数设为NULL则使用默认扫描。</p>
+<p>该函数扫描出的<strong>结果会储存在内存中</strong>，直到调用<code>esp_wifi_scan_get_ap_records()</code>或者<code>esp_err_t esp_wifi_clear_ap_list(void)</code>释放。</p>
+<blockquote>
+<p>主动扫描:通过发送 probe request 进行扫描。该模式为默认的扫描模式。</p>
+<p>被动扫描:不发送 probe request。跳至某一特定信道并等待 beacon。应用程序可通过 wifi_scan_config_t 中的 scan_type 字段使能被动扫描。</p>
+</blockquote>
+<p>调用 API <code>sp_wifi_set_config()</code> 可全局配置一些扫描属性，请参阅 station的配置。</p>
+<blockquote>
+<p>如果国家信息有误，调用函数 esp_wifi_set_country() 进行配置。</p>
+</blockquote>
+<p>当全部扫描完成后，会产生<code>WIFI_EVENT_SCAN_DONE</code>事件，在该事件函数中，使用以下API获得扫描得到的AP数量：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_wifi_scan_get_ap_num</span><span class="params">(<span class="type">uint16_t</span> *number)</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>获得AP数量后，使用以下API获得具体信息：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_wifi_scan_get_ap_records</span><span class="params">(<span class="type">uint16_t</span> *number, <span class="type">wifi_ap_record_t</span> *ap_records)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>参数：</strong></p>
+<ul>
+<li><code>number</code>:该参数是一个输入输出参数。但作为输入参数，它指示了<code>ap_records</code>最多储存的数量。作为输出参数，它则与<code>esp_err_t esp_wifi_scan_get_ap_num(uint16_t *number);</code>输出一样。</li>
+<li><code>ap_records</code>:储存扫描到AP信息的参数</li>
+</ul>
+<p><code>ap_records</code>:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> {</span></span><br><span class="line">    <span class="type">uint8_t</span> bssid[<span class="number">6</span>];                     <span class="comment">/**&lt; MAC address of AP */</span></span><br><span class="line">    <span class="type">uint8_t</span> ssid[<span class="number">33</span>];                     <span class="comment">/**&lt; SSID of AP */</span></span><br><span class="line">    <span class="type">uint8_t</span> primary;                      <span class="comment">/**&lt; channel of AP */</span></span><br><span class="line">    <span class="type">wifi_second_chan_t</span> second;            <span class="comment">/**&lt; secondary channel of AP */</span></span><br><span class="line">    <span class="type">int8_t</span>  rssi;                         <span class="comment">/**&lt; signal strength of AP */</span></span><br><span class="line">    <span class="type">wifi_auth_mode_t</span> authmode;            <span class="comment">/**&lt; authmode of AP */</span></span><br><span class="line">    <span class="type">wifi_cipher_type_t</span> pairwise_cipher;   <span class="comment">/**&lt; pairwise cipher of AP */</span></span><br><span class="line">    <span class="type">wifi_cipher_type_t</span> group_cipher;      <span class="comment">/**&lt; group cipher of AP */</span></span><br><span class="line">    <span class="type">wifi_ant_t</span> ant;                       <span class="comment">/**&lt; antenna used to receive beacon from AP */</span></span><br><span class="line">    <span class="type">uint32_t</span> phy_11b:<span class="number">1</span>;                   <span class="comment">/**&lt; bit: 0 flag to identify if 11b mode is enabled or not */</span></span><br><span class="line">    <span class="type">uint32_t</span> phy_11g:<span class="number">1</span>;                   <span class="comment">/**&lt; bit: 1 flag to identify if 11g mode is enabled or not */</span></span><br><span class="line">    <span class="type">uint32_t</span> phy_11n:<span class="number">1</span>;                   <span class="comment">/**&lt; bit: 2 flag to identify if 11n mode is enabled or not */</span></span><br><span class="line">    <span class="type">uint32_t</span> phy_lr:<span class="number">1</span>;                    <span class="comment">/**&lt; bit: 3 flag to identify if low rate is enabled or not */</span></span><br><span class="line">    <span class="type">uint32_t</span> wps:<span class="number">1</span>;                       <span class="comment">/**&lt; bit: 4 flag to identify if WPS is supported or not */</span></span><br><span class="line">    <span class="type">uint32_t</span> ftm_responder:<span class="number">1</span>;             <span class="comment">/**&lt; bit: 5 flag to identify if FTM is supported in responder mode */</span></span><br><span class="line">    <span class="type">uint32_t</span> ftm_initiator:<span class="number">1</span>;             <span class="comment">/**&lt; bit: 6 flag to identify if FTM is supported in initiator mode */</span></span><br><span class="line">    <span class="type">uint32_t</span> reserved:<span class="number">25</span>;                 <span class="comment">/**&lt; bit: 7..31 reserved */</span></span><br><span class="line">    <span class="type">wifi_country_t</span> country;               <span class="comment">/**&lt; country information of AP */</span></span><br><span class="line">} <span class="type">wifi_ap_record_t</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>一个例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"esp_wifi.h"</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> DEFAULT_SCAN_LIST_SIZE 10</span></span><br><span class="line">	</span><br><span class="line">...</span><br><span class="line">	esp_wifi_scan_start(<span class="literal">NULL</span>, <span class="literal">true</span>);</span><br><span class="line">    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&amp;number, ap_info));</span><br><span class="line">    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&amp;ap_count));</span><br><span class="line">    ESP_LOGI(TAG, <span class="string">"Total APs scanned = %u"</span>, ap_count);</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; (i &lt; DEFAULT_SCAN_LIST_SIZE) &amp;&amp; (i &lt; ap_count); i++) {</span><br><span class="line">        ESP_LOGI(TAG, <span class="string">"SSID \t\t%s"</span>, ap_info[i].ssid);</span><br><span class="line">        ESP_LOGI(TAG, <span class="string">"RSSI \t\t%d"</span>, ap_info[i].rssi);</span><br><span class="line">        print_auth_mode(ap_info[i].authmode);</span><br><span class="line">        <span class="keyword">if</span> (ap_info[i].authmode != WIFI_AUTH_WEP) {</span><br><span class="line">            print_cipher_type(ap_info[i].pairwise_cipher, ap_info[i].group_cipher);</span><br><span class="line">        }</span><br><span class="line">        ESP_LOGI(TAG, <span class="string">"Channel \t\t%d\n"</span>, ap_info[i].primary);</span><br><span class="line">    }</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h2 id="附录-WiFi事件描述"><a href="#附录-WiFi事件描述" class="headerlink" title="附录-WiFi事件描述"></a>附录-WiFi事件描述</h2><p>该部分来自官方文档，在这里做参考。以下为具体事件名，头两个单词同时也是基事件名。</p>
+<ul>
+<li><p><strong>WIFI_EVENT_WIFI_READY</strong><br>  Wi-Fi 驱动程序永远不会生成此事件，因此，应用程序的事件回调函数可忽略此事件。在未来的版本中，此事件可能会被移除。</p>
+</li>
+<li><p><strong>WIFI_EVENT_SCAN_DONE</strong><br>  扫描完成事件，由 esp_wifi_scan_start() 函数触发，将在以下情况下产生：</p>
+<p>  扫描已完成，例如：Wi-Fi 已成功找到目标 AP 或已扫描所有信道。</p>
+<p>  当前扫描因函数 esp_wifi_scan_stop() 而终止。</p>
+<p>  在当前扫描完成之前调用了函数 esp_wifi_scan_start()。此时，新的扫描将覆盖当前扫描过程，并生成一个扫描完成事件。</p>
+<p>  以下情况下将不会产生扫描完成事件：</p>
+<p>  ​	当前扫描被阻止。</p>
+<p>  ​	当前扫描是由函数 esp_wifi_connect() 触发的。</p>
+<p>  接收到此事件后，事件任务暂不做任何响应。首先，应用程序的事件回调函数需调用 esp_wifi_scan_get_ap_num() 和 esp_wifi_scan_get_ap_records() 获取已扫描的 AP 列表，然后触发 Wi-Fi 驱动程序释放在扫描过程中占用的内存空间（切记该步骤）。 更多详细信息，请参阅 ESP32-S3 Wi-Fi 扫描。</p>
+</li>
+<li><p><strong>WIFI_EVENT_STA_START</strong><br>  如果调用函数 esp_wifi_start() 后接收到返回值 ESP_OK，且当前 Wi-Fi 处于 station 或 station/AP 共存模式，则将产生此事件。接收到此事件后，事件任务将初始化 LwIP 网络接口 (netif)。通常，应用程序的事件回调函数需调用 esp_wifi_connect() 来连接已配置的 AP。</p>
+</li>
+<li><p><strong>WIFI_EVENT_STA_STOP</strong><br>  如果调用函数 esp_wifi_stop() 后接收到返回值 ESP_OK，且当前 Wi-Fi 处于 station 或 station/AP 共存模式，则将产生此事件。接收到此事件后，事件任务将进行释放 station IP 地址、终止 DHCP 客户端服务、移除 TCP/UDP 相关连接并清除 LwIP station netif 等动作。此时，应用程序的事件回调函数通常不需做任何响应。</p>
+</li>
+<li><p><strong>WIFI_EVENT_STA_CONNECTED</strong><br>  如果调用函数 esp_wifi_connect() 后接收到返回值 ESP_OK，且 station 已成功连接目标 AP，则将产生此连接事件。接收到此事件后，事件任务将启动 DHCP 客户端服务并开始获取 IP 地址。此时，Wi-Fi 驱动程序已准备就绪，可发送和接收数据。如果您的应用程序不依赖于 LwIP（即 IP 地址），则此刻便可以开始应用程序开发工作。但是，如果您的应用程序需基于 LwIP 进行，则还需等待 got ip 事件发生后才可开始。</p>
+</li>
+<li><p><strong>WIFI_EVENT_STA_DISCONNECTED</strong><br>  此事件将在以下情况下产生：</p>
+<p>  ​	1. 调用了函数 esp_wifi_disconnect() 或 esp_wifi_stop()，且 Wi-Fi station 已成功连接至 AP。</p>
+<p>  ​	2. 调用了函数 esp_wifi_connect()，但 Wi-Fi 驱动程序因为某些原因未能成功连接至 AP，例如：未扫描到目标 AP、验证超时等。		或存在多个 SSID 相同的 AP，station 无法连接所有已找到的 AP，也将产生该事件。</p>
+<p>  ​	3. Wi-Fi 连接因为某些原因而中断，例如：station 连续多次丢失 N beacon、AP 踢掉 station、AP 认证模式改变等。</p>
+<p>  接收到此事件后，事件任务的默认动作为：</p>
+<p>  ​	1. 关闭 station 的 LwIP netif。</p>
+<p>  ​	2. 通知 LwIP 任务清除导致所有套接字状态错误的 UDP/TCP 连接。针对基于套接字编写的应用程序，其回调函数可以在接收到此		事件时（如有必要）关闭并重新创建所有套接字。</p>
+<p>  应用程序处理此事件最常用的方法为：调用函数 esp_wifi_connect() 重新连接 Wi-Fi。但是，如果此事件是由函数 esp_wifi_disconnect() 引发的，则应用程序不应调用 esp_wifi_connect() 来重新连接。应用程序须明确区分此事件的引发原因，因为某些情况下应使用其它更好的方式进行重新连接。请参阅 Wi-Fi 重新连接 和 连接 Wi-Fi 时扫描。</p>
+<p>  需要注意的另一点是：接收到此事件后，LwIP 的默认动作是终止所有 TCP 套接字连接。大多数情况下，该动作不会造成影响。但对某些特殊应用程序可能除外。例如：</p>
+<p>  应用程序创建一个了 TCP 连接，以维护每 60 秒发送一次的应用程序级、保持活动状态的数据。</p>
+<p>  由于某些原因，Wi-Fi 连接被切断并引发了 WIFI_EVENT_STA_DISCONNECTED 事件。根据当前实现，此时所有 TCP 连接都将被移除，且保持活动的套接字将处于错误的状态中。但是，由于应用程序设计者认为网络层 不应 考虑这个 Wi-Fi 层的错误，因此应用程序不会关闭套接字。</p>
+<p>  5 秒后，因为在应用程序的事件回调函数中调用了 esp_wifi_connect()，Wi-Fi 连接恢复。同时，station 连接至同一个 AP 并获得与之前相同的 IPV4 地址。</p>
+<p>  60 秒后，当应用程序发送具有保持活动状态的套接字的数据时，套接字将返回错误，应用程序将关闭套接字并在必要时重新创建。</p>
+<p>  在上述场景中，理想状态下应用程序套接字和网络层将不会受到影响，因为在此过程中 Wi-Fi 连接只是短暂地断开然后快速恢复。应用程序可通过 LwIP menuconfig 启动“IP 改变时保持 TCP 连接”的功能。</p>
+</li>
+<li><p><strong>IP_EVENT_STA_GOT_IP</strong><br>  当 DHCP 客户端成功从 DHCP 服务器获取 IPV4 地址或 IPV4 地址发生改变时，将引发此事件。此事件意味着应用程序一切就绪，可以开始任务（如：创建套接字）。</p>
+<p>  IPV4 地址可能由于以下原因而发生改变：</p>
+<p>  ​	1. DHCP 客户端无法重新获取/绑定 IPV4 地址，且 station 的 IPV4 重置为 0。</p>
+<p>  ​	2. DHCP 客户端重新绑定了其它地址。</p>
+<p>  ​	3. 静态配置的 IPV4 地址已发生改变。</p>
+<p>  函数 ip_event_got_ip_t 中的字段 ip_change 说明了 IPV4 地址是否发生改变。</p>
+<p>  套接字的状态是基于 IPV4 地址的，这意味着，如果 IPV4 地址发生改变，则所有与此 IPV4 相关的套接字都将变为异常。接收到此事件后，应用程序需关闭所有套接字，并在 IPV4 变为有效地址时重新创建应用程序。</p>
+</li>
+<li><p><strong>IP_EVENT_GOT_IP6</strong><br>  当 IPV6 SLAAC 支持自动为 ESP32-S3 配置一个地址，或 ESP32-S3 地址发生改变时，将引发此事件。此事件意味着应用程序一切就绪，可以开始任务（如：创建套接字）。</p>
+</li>
+<li><p><strong>IP_EVENT_STA_LOST_IP</strong><br>  当 IPV4 地址失效时，将引发此事件。</p>
+<p>  此事件不会在 Wi-Fi 断连后立刻出现。Wi-Fi 连接断开后，首先将启动一个 IPV4 地址丢失计时器，如果 station 在该计时器超时之前成功获取了 IPV4 地址，则不会发生此事件。否则，此事件将在计时器超时时发生。</p>
+<p>  一般来说，应用程序可忽略此事件。这只是一个调试事件，主要使应用程序获知 IPV4 地址已丢失。</p>
+</li>
+<li><p><strong>WIFI_EVENT_AP_START</strong><br>  与 WIFI_EVENT_STA_START 事件相似。</p>
+</li>
+<li><p><strong>WIFI_EVENT_AP_STOP</strong><br>  与 WIFI_EVENT_STA_STOP 事件相似。</p>
+</li>
+<li><p><strong>WIFI_EVENT_AP_STACONNECTED</strong><br>  每当有一个 station 成功连接 ESP32-S3 AP 时，将引发此事件。接收到此事件后，事件任务将不做任何响应，应用程序的回调函数也可忽略这一事件。但是，您可以在此时进行一些操作，例如：获取已连接 station 的信息等。</p>
+</li>
+<li><p><strong>WIFI_EVENT_AP_STADISCONNECTED</strong><br>  此事件将在以下情况下发生：</p>
+<p>  ​	1. 应用程序通过调用函数 esp_wifi_disconnect() 或 esp_wifi_deauth_sta() 手动断开 station 连接。</p>
+<p>  ​	2. Wi-Fi 驱动程序出于某些原因断开 station 连接，例如：AP 在过去 5 分钟（可通过函数 esp_wifi_set_inactive_time() 修改该时间）内未接收到任何数据包等。</p>
+<p>  ​	3. station 断开与 AP 之间的连接。</p>
+<p>  发生此事件时，事件任务将不做任何响应，但应用程序的事件回调函数需执行一些操作，例如：关闭与此 station 相关的套接字等。</p>
+</li>
+<li><p><strong>WIFI_EVENT_AP_PROBEREQRECVED</strong><br>  默认情况下，此事件处于禁用状态，应用程序可以通过调用 API esp_wifi_set_event_mask() 启用。 启用后，每当 AP 接收到 probe request 时都将引发此事件。</p>
+</li>
+<li><p><strong>WIFI_EVENT_STA_BEACON_TIMEOUT</strong><br>  如果 station 在 inactive 时间内未收到所连接 AP 的 beacon，将发生 beacon 超时，将引发此事件。inactive 时间通过调用函数 esp_wifi_set_inactive_time() 设置。</p>
+</li>
+<li><p><strong>WIFI_EVENT_CONNECTIONLESS_MODULE_WAKE_INTERVAL_START</strong><br>  非连接模块在 Interval 开始时触发此事件。 请参考 非连接模块功耗管理 。</p>
+</li>
+</ul>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/42952/">https://lostacnet.top/post/42952/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ESP-IDF%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-WIFI%E8%BF%9E%E6%8E%A5"><span class="toc-number">1.</span> <span class="toc-text">ESP-IDF学习笔记-WIFI连接</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%8C%E9%85%8D%E7%BD%AE%E6%AD%A5%E9%AA%A4%E6%A6%82%E8%A7%88"><span class="toc-number">1.1.</span> <span class="toc-text">一，配置步骤概览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8C%E5%85%B7%E4%BD%93%E9%85%8D%E7%BD%AE%E6%B5%81%E7%A8%8B"><span class="toc-number">1.2.</span> <span class="toc-text">二，具体配置流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96NVS"><span class="toc-number">1.2.1.</span> <span class="toc-text">初始化NVS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96ESP-NETIF%E5%92%8C%E5%88%9B%E5%BB%BA%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF"><span class="toc-number">1.2.2.</span> <span class="toc-text">初始化ESP-NETIF和创建事件循环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E5%86%8C%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0"><span class="toc-number">1.2.3.</span> <span class="toc-text">注册处理函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AEWiFi"><span class="toc-number">1.2.4.</span> <span class="toc-text">设置WiFi</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%8C%E6%89%AB%E6%8F%8FWiFi"><span class="toc-number">1.3.</span> <span class="toc-text">三，扫描WiFi</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95-WiFi%E4%BA%8B%E4%BB%B6%E6%8F%8F%E8%BF%B0"><span class="toc-number">1.4.</span> <span class="toc-text">附录-WiFi事件描述</span></a></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
