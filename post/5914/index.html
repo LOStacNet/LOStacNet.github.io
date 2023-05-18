@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>ESP-IDF学习笔记-并口LCD | LO_StacNet的火柴盒</title>
+    <meta name="description" content="ESP-IDF学习笔记-并口LCDESP32S3中提供了一堆外设，其中就包括LCD外设。该外设可以直接驱动屏幕，支持SPI，I2C，8080，RGB接口的屏幕。这与STM32不同（需要基于FSMC或者SPI写驱动），硬件完成了大部分操作。这里记录使用8080并口屏的方法，以及使用触摸作为输入。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ESP-IDF学习笔记-并口LCD">
+<meta property="og:url" content="https://lostacnet.top/post/5914/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="ESP-IDF学习笔记-并口LCDESP32S3中提供了一堆外设，其中就包括LCD外设。该外设可以直接驱动屏幕，支持SPI，I2C，8080，RGB接口的屏幕。这与STM32不同（需要基于FSMC或者SPI写驱动），硬件完成了大部分操作。这里记录使用8080并口屏的方法，以及使用触摸作为输入。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-05-09T09:14:26.000Z">
+<meta property="article:modified_time" content="2023-05-14T11:34:24.163Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="ESP-IDF">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            ESP-IDF学习笔记-并口LCD
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/5914/" class="article-date">
+	  <time datetime="2023-05-09T09:14:26.000Z" itemprop="datePublished">5月 9</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/ESP32/">ESP32</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/ESP-IDF/" rel="tag">ESP-IDF</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/5914/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 2k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 8(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="ESP-IDF学习笔记-并口LCD"><a href="#ESP-IDF学习笔记-并口LCD" class="headerlink" title="ESP-IDF学习笔记-并口LCD"></a>ESP-IDF学习笔记-并口LCD</h1><p>ESP32S3中提供了一堆外设，其中就包括<strong>LCD外设</strong>。该外设可以直接驱动屏幕，支持SPI，I2C，8080，RGB接口的屏幕。这与STM32不同（需要基于FSMC或者SPI写驱动），硬件完成了大部分操作。这里记录使用8080并口屏的方法，以及使用触摸作为输入。</p>
+<span id="more"></span>
+
+<p><a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/api-reference/peripherals/lcd.html">官方文档</a></p>
+<h2 id="一，配置步骤概览"><a href="#一，配置步骤概览" class="headerlink" title="一，配置步骤概览"></a>一，配置步骤概览</h2><p>以8080总线驱动的HX8369A屏幕为例，ESP32中提供的API结构大概如下：</p>
+<h3 id="初始化总线"><a href="#初始化总线" class="headerlink" title="初始化总线"></a>初始化总线</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">esp_lcd_new_i80_bus();</span><br></pre></td></tr></table></figure>
+
+<p>使用该函数定义时钟源，D/C引脚，WR引脚，总线宽度(8/16)，数据引脚，单次最大传输数据量，DMA对齐参数。是对仅<strong>对8080总线的定义</strong>。</p>
+<h3 id="定义一个i80panel的IO"><a href="#定义一个i80panel的IO" class="headerlink" title="定义一个i80panel的IO"></a>定义一个i80panel的IO</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">esp_lcd_new_panel_io_i80();</span><br></pre></td></tr></table></figure>
+
+<p>在LCD驱动中，使用panel处理一个需要驱动的屏幕，需要我们去设置这个panel的io口。这个IO口是<strong>包含i80在内的片选等一个屏幕的io的合集</strong>。同时还定义了<strong>io口电平的含义(命令数据是高电平还是低电平等)，定义了屏幕的数据时钟速度，是否交换颜色数据字节，刷新完成回调(用于GUI)，命令长度和参数长度等定义</strong>。</p>
+<h3 id="创建一个panel"><a href="#创建一个panel" class="headerlink" title="创建一个panel"></a>创建一个panel</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">esp_lcd_new_panel_st7789()</span><br></pre></td></tr></table></figure>
+
+<p>在这一步<strong>创建一个面板句柄</strong>，绑定了特定的屏幕驱动芯片，设置reset脚，色域深度等。</p>
+<h3 id="初始化屏幕"><a href="#初始化屏幕" class="headerlink" title="初始化屏幕"></a>初始化屏幕</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">esp_lcd_panel_reset(panel_handle);</span><br><span class="line"><span class="comment">//在init前必须reset</span></span><br><span class="line">esp_lcd_panel_init(panel_handle);</span><br></pre></td></tr></table></figure>
+
+<p>这一步将初始化屏幕。</p>
+<h3 id="设置其他参数"><a href="#设置其他参数" class="headerlink" title="设置其他参数"></a>设置其他参数</h3><p>设置屏幕间隙，是否交换x/y轴等。</p>
+<h2 id="二，配置步骤"><a href="#二，配置步骤" class="headerlink" title="二，配置步骤"></a>二，配置步骤</h2><p>这里使用<strong>HX8369A驱动的480*800</strong>屏幕，利用8<strong>线8080数据线</strong>驱动的屏幕。</p>
+<h3 id="初始化总线-1"><a href="#初始化总线-1" class="headerlink" title="初始化总线"></a>初始化总线</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_new_i80_bus</span><span class="params">(<span class="type">const</span> <span class="type">esp_lcd_i80_bus_config_t</span> *bus_config, <span class="type">esp_lcd_i80_bus_handle_t</span> *ret_bus)</span></span><br></pre></td></tr></table></figure>
+
+<p>该函数创建了一个i80句柄(ret_bus)。输入参数：</p>
+<ul>
+<li><code>esp_lcd_i80_bus_config_t</code></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> {</span></span><br><span class="line">    <span class="type">int</span> dc_gpio_num; <span class="comment">//D/C线</span></span><br><span class="line">    <span class="type">int</span> wr_gpio_num; <span class="comment">//WR线</span></span><br><span class="line">    <span class="type">lcd_clock_source_t</span> clk_src; <span class="comment">//选择时钟源</span></span><br><span class="line">    <span class="type">int</span> data_gpio_nums[SOC_LCD_I80_BUS_WIDTH]; <span class="comment">//数据线数组</span></span><br><span class="line">    <span class="type">size_t</span> bus_width;          <span class="comment">//设定数据线宽度, 8 or 16 </span></span><br><span class="line">    <span class="type">size_t</span> max_transfer_bytes; <span class="comment">//最大传输长度，这里决定了内部DMA的传输长度</span></span><br><span class="line">    <span class="type">size_t</span> psram_trans_align;  <span class="comment">//PSRAM中的数据，DMA使用的数据对齐长度</span></span><br><span class="line">    <span class="type">size_t</span> sram_trans_align;   <span class="comment">//SRAM中的数据，DMA使用的数据对齐长度</span></span><br><span class="line">} <span class="type">esp_lcd_i80_bus_config_t</span>;</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><p><code>clk_src</code></p>
+<p>  时钟源选择。一般选择<code>LCD_CLK_SRC_DEFAULT</code>(<code>LCD_CLK_SRC_PLL160M</code>)。还可以选择<code>LCD_CLK_SRC_PLL240M</code>,<code>LCD_CLK_SRC_XTAL</code>。</p>
+</li>
+<li><p><code>max_transfer_bytes</code></p>
+<p>  决定了内部DMA的传输长度，一般为行的整数倍:<code>EXAMPLE_LCD_H_RES * 100 * sizeof(uint16_t)</code></p>
+</li>
+<li><p><code>psram_trans_align</code></p>
+<p>  PRAM中使用的数据对齐，支持16，32，64。</p>
+<blockquote>
+<p>Supported alignment: 16, 32, 64. A higher alignment can enables higher burst transfer size, thus a higher i80 bus throughput.</p>
+</blockquote>
+</li>
+<li><p><code>sram_trans_align</code></p>
+<p>  一般为4</p>
+</li>
+</ul>
+<blockquote>
+<p>这个DMA对齐我还没搞明白，但应该是和STM32DMA设置中的字半字之类有关吧。</p>
+</blockquote>
+<p>使用例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">    <span class="type">esp_lcd_i80_bus_handle_t</span> i80_bus = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="type">esp_lcd_i80_bus_config_t</span> bus_config = {</span><br><span class="line">        .clk_src = LCD_CLK_SRC_DEFAULT,</span><br><span class="line">        .dc_gpio_num = EXAMPLE_PIN_NUM_DC,</span><br><span class="line">        .wr_gpio_num = EXAMPLE_PIN_NUM_PCLK,</span><br><span class="line">        .data_gpio_nums = {</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA0,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA1,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA2,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA3,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA4,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA5,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA6,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA7,</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> CONFIG_EXAMPLE_LCD_I80_BUS_WIDTH &gt; 8</span></span><br><span class="line">            EXAMPLE_PIN_NUM_DATA8,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA9,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA10,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA11,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA12,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA13,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA14,</span><br><span class="line">            EXAMPLE_PIN_NUM_DATA15,</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">        },</span><br><span class="line">        .bus_width = CONFIG_EXAMPLE_LCD_I80_BUS_WIDTH,</span><br><span class="line">        .max_transfer_bytes = <span class="number">480</span> * <span class="number">100</span> * <span class="keyword">sizeof</span>(<span class="type">uint16_t</span>),</span><br><span class="line">        .psram_trans_align = <span class="number">64</span>,</span><br><span class="line">        .sram_trans_align = <span class="number">4</span>,</span><br><span class="line">    };</span><br><span class="line">    ESP_ERROR_CHECK(esp_lcd_new_i80_bus(&amp;bus_config, &amp;i80_bus));</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="创建IO设备句柄"><a href="#创建IO设备句柄" class="headerlink" title="创建IO设备句柄"></a>创建IO设备句柄</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_new_panel_io_i80</span><span class="params">(<span class="type">esp_lcd_i80_bus_handle_t</span> bus, <span class="type">const</span> <span class="type">esp_lcd_panel_io_i80_config_t</span> *io_config, <span class="type">esp_lcd_panel_io_handle_t</span> *ret_io)</span></span><br></pre></td></tr></table></figure>
+
+<p>在i80总线的基础上创建IO句柄。</p>
+<p>参数：</p>
+<ul>
+<li><p><code>bus</code></p>
+<p>  <code>esp_lcd_new_i80_bus()</code>创建的句柄</p>
+</li>
+<li><p><code>ret_io</code></p>
+<p>  创建出来的句柄</p>
+</li>
+<li><p><code>io_config</code></p>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> {</span></span><br><span class="line">    <span class="type">int</span> cs_gpio_num;         <span class="comment">/*!&lt; 片选线，设为-1不使用*/</span></span><br><span class="line">    <span class="type">uint32_t</span> pclk_hz;        <span class="comment">/*!&lt; 像素时钟频率 */</span><span class="number">100</span>ns</span><br><span class="line">    <span class="type">size_t</span> trans_queue_depth; <span class="comment">/*!&lt; 传输队列长度，越大数据吞吐量越大 */</span></span><br><span class="line">    <span class="type">esp_lcd_panel_io_color_trans_done_cb_t</span> on_color_trans_done; <span class="comment">/*!&lt; 数据传输完成回调，用于GUI */</span></span><br><span class="line">    <span class="type">void</span> *user_ctx;    <span class="comment">/*!&lt; 用户参数，传递给回调 on_color_trans_done's user_ctx */</span></span><br><span class="line">    <span class="type">int</span> lcd_cmd_bits;   <span class="comment">/*!&lt; 命令的位数 */</span></span><br><span class="line">    <span class="type">int</span> lcd_param_bits; <span class="comment">/*!&lt; 参数的位数 */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> {</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> dc_idle_level: <span class="number">1</span>;  <span class="comment">/*!&lt; 空闲时D/C的电平 */</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> dc_cmd_level: <span class="number">1</span>;   <span class="comment">/*!&lt; 命令时D/C的电平 */</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> dc_dummy_level: <span class="number">1</span>; <span class="comment">/*!&lt; Level of DC line in DUMMY phase */</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> dc_data_level: <span class="number">1</span>;  <span class="comment">/*!&lt; 数据时D/C的电平 */</span></span><br><span class="line">    } dc_levels; <span class="comment">/*!&lt; 为每个8080定义自己的逻辑电平 */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> {</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> cs_active_high: <span class="number">1</span>;     <span class="comment">/*!&lt; 片选有效电平 */</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> reverse_color_bits: <span class="number">1</span>; <span class="comment">/*!&lt; 是否反转bit, D[N:0] -&gt; D[0:N] */</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> swap_color_bytes: <span class="number">1</span>;   <span class="comment">/*!&lt; 交换两个颜色字节 */</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> pclk_active_neg: <span class="number">1</span>;    <span class="comment">/*!&lt; 是否使用wr下降沿传输数据 */</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> pclk_idle_low: <span class="number">1</span>;      <span class="comment">/*!&lt; 空闲时wr的电平 */</span></span><br><span class="line">    } flags;                                <span class="comment">/*!&lt; Panel IO config flags */</span></span><br><span class="line">} <span class="type">esp_lcd_panel_io_i80_config_t</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>其中回调函数的模板：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="title function_">bool</span> <span class="params">(*<span class="type">esp_lcd_panel_io_color_trans_done_cb_t</span>)</span><span class="params">(<span class="type">esp_lcd_panel_io_handle_t</span> panel_io, <span class="type">esp_lcd_panel_io_event_data_t</span> *edata, <span class="type">void</span> *user_ctx)</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//example</span></span><br><span class="line"><span class="type">static</span> <span class="type">bool</span> <span class="title function_">example_notify_lvgl_flush_ready</span><span class="params">(<span class="type">esp_lcd_panel_io_handle_t</span> panel_io, <span class="type">esp_lcd_panel_io_event_data_t</span> *edata, <span class="type">void</span> *user_ctx)</span></span><br><span class="line">{</span><br><span class="line">    <span class="type">lv_disp_drv_t</span> *disp_driver = (<span class="type">lv_disp_drv_t</span> *)user_ctx;</span><br><span class="line">    lv_disp_flush_ready(disp_driver);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"esp_lcd_panel_io.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">esp_lcd_panel_io_handle_t</span> io_handle = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="type">esp_lcd_panel_io_i80_config_t</span> io_config = {</span><br><span class="line">        .cs_gpio_num = EXAMPLE_PIN_NUM_CS,</span><br><span class="line">        .pclk_hz = EXAMPLE_LCD_PIXEL_CLOCK_HZ,</span><br><span class="line">        .trans_queue_depth = <span class="number">10</span>,</span><br><span class="line">        .dc_levels = {</span><br><span class="line">            .dc_idle_level = <span class="number">0</span>,</span><br><span class="line">            .dc_cmd_level = <span class="number">0</span>,</span><br><span class="line">            .dc_dummy_level = <span class="number">0</span>,</span><br><span class="line">            .dc_data_level = <span class="number">1</span>,</span><br><span class="line">        },</span><br><span class="line">        .flags = {</span><br><span class="line">            .swap_color_bytes = !LV_COLOR_16_SWAP, <span class="comment">// Swap can be done in LvGL (default) or DMA</span></span><br><span class="line">        },</span><br><span class="line">        .on_color_trans_done = example_notify_lvgl_flush_ready,</span><br><span class="line">        .user_ctx = &amp;disp_drv,</span><br><span class="line">        .lcd_cmd_bits = EXAMPLE_LCD_CMD_BITS,</span><br><span class="line">        .lcd_param_bits = EXAMPLE_LCD_PARAM_BITS,</span><br><span class="line">    };</span><br><span class="line">    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i80(i80_bus, &amp;io_config, &amp;io_handle));</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h3 id="创建panel句柄"><a href="#创建panel句柄" class="headerlink" title="创建panel句柄"></a>创建panel句柄</h3><p>创建完IO句柄后，驱动知道了怎么发数据，但是还不知道发什么数据/命令。因此，需要一层驱动层。</p>
+<p>使用如下命令创建面板。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_new_panel_st7789</span><span class="params">(<span class="type">const</span> <span class="type">esp_lcd_panel_io_handle_t</span> io, <span class="type">const</span> <span class="type">esp_lcd_panel_dev_config_t</span> *panel_dev_config, <span class="type">esp_lcd_panel_handle_t</span> *ret_panel)</span></span><br></pre></td></tr></table></figure>
+
+<p>创建了一个基于st7789的面板句柄。</p>
+<ul>
+<li><p><code>io</code></p>
+<p>  上面创建的io句柄</p>
+</li>
+<li><p><code>ret_panel</code></p>
+<p>  创建出来的句柄</p>
+</li>
+<li><p><code>panel_dev_config</code></p>
+<p>  设置结构体</p>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"esp_lcd_panel_vendor.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> {</span></span><br><span class="line">    <span class="type">int</span> reset_gpio_num; <span class="comment">/*!&lt; reset引脚，使用-1为不使用 */</span></span><br><span class="line">    <span class="class"><span class="keyword">union</span> {</span></span><br><span class="line">        <span class="type">lcd_color_rgb_endian_t</span> color_space; <span class="comment">/*!&lt; @弃用 Set RGB color space, please use rgb_endian instead */</span></span><br><span class="line">        <span class="type">lcd_color_rgb_endian_t</span> rgb_endian;  <span class="comment">/*!&lt; 颜色顺序，RGB或者BGR */</span></span><br><span class="line">    };</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> bits_per_pixel;       <span class="comment">/*!&lt; 颜色深度, in bpp(bits per pixel) */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> {</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> reset_active_high: <span class="number">1</span>; <span class="comment">/*!&lt; 设置reset有效电平 */</span></span><br><span class="line">    } flags;                               <span class="comment">/*!&lt; LCD panel config flags */</span></span><br><span class="line">    <span class="type">void</span> *vendor_config; <span class="comment">/*!&lt; vendor specific configuration, optional, left as NULL if not used */</span></span><br><span class="line">} <span class="type">esp_lcd_panel_dev_config_t</span>;</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><code>rgb_endian</code>:<code>LCD_RGB_ENDIAN_RGB</code>/<code>LCD_RGB_ENDIAN_BGR</code></li>
+</ul>
+<p>例子:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_lcd_panel_handle_t</span> panel_handle = <span class="literal">NULL</span>;</span><br><span class="line">ESP_LOGI(TAG, <span class="string">"Install LCD driver of st7789"</span>);</span><br><span class="line"><span class="type">esp_lcd_panel_dev_config_t</span> panel_config = {</span><br><span class="line">    .reset_gpio_num = EXAMPLE_PIN_NUM_RST,</span><br><span class="line">    .rgb_endian = LCD_RGB_ENDIAN_RGB,</span><br><span class="line">    .bits_per_pixel = <span class="number">16</span>,</span><br><span class="line">};</span><br><span class="line">ESP_ERROR_CHECK(esp_lcd_new_panel_st7789(io_handle, &amp;panel_config, &amp;panel_handle));</span><br></pre></td></tr></table></figure>
+
+
+
+<p><del>然而，这是ST7789的驱动，我这个sb开发板是hx8369A驱动的，这个在官方的库中没支持。（虽然<strong>官方也只支持了ST7789，nt35510,ssd1306</strong>），在esp的组件库中也没有。但是在例程中给的库<code>lvgl_esp32_drivers</code>中有这个芯片，在该库中实现了一个hx8396a的panel生成，我这个开发板的店家也是直接用的那里面的驱动，然后好像改成了8080发送数据。然后我问店家怎么移植，他直接说用这个，然后说他们不教这个？？？</del></p>
+<p>关于如果需要其他IC驱动的芯片（冷门的导致ESP官方没有支持的），需要自己添加驱动层代码，我会在另一篇文章细说。</p>
+<h3 id="调用函数初始化"><a href="#调用函数初始化" class="headerlink" title="调用函数初始化"></a>调用函数初始化</h3><p>以下函数都实际在上面的panel中实现的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_panel_reset</span><span class="params">(<span class="type">esp_lcd_panel_handle_t</span> panel)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>重置屏幕，该函数需要在使用<code>esp_lcd_panel_init()</code>前被调用。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_panel_init</span><span class="params">(<span class="type">esp_lcd_panel_handle_t</span> panel)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>初始化屏幕。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_panel_mirror</span><span class="params">(<span class="type">esp_lcd_panel_handle_t</span> panel, <span class="type">bool</span> mirror_x, <span class="type">bool</span> mirror_y)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>在某个轴镜像屏幕。与<code>esp_lcd_panel_swap_xy()</code>协同使用。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_panel_swap_xy</span><span class="params">(<span class="type">esp_lcd_panel_handle_t</span> panel, <span class="type">bool</span> swap_axes)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>交换x/y轴。与<code>esp_lcd_panel_mirror()</code>协同使用。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_panel_set_gap</span><span class="params">(<span class="type">esp_lcd_panel_handle_t</span> panel, <span class="type">int</span> x_gap, <span class="type">int</span> y_gap)</span></span><br></pre></td></tr></table></figure>
+
+<p>设置x/y上的间隙（到边框的距离）。间隙是指液晶面板的左/顶部两侧分别与实际显示的第一行/列之间的空间（像素）。</p>
+<blockquote>
+<p>当定位或对准比LCD小的框架时，设置间隙是很有用的。</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_panel_invert_color</span><span class="params">(<span class="type">esp_lcd_panel_handle_t</span> panel, <span class="type">bool</span> invert_color_data)</span></span><br></pre></td></tr></table></figure>
+
+<p>颜色反转。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_panel_disp_on_off</span><span class="params">(<span class="type">esp_lcd_panel_handle_t</span> panel, <span class="type">bool</span> on_off)</span></span><br></pre></td></tr></table></figure>
+
+<p>打开或者关闭显示。</p>
+<p>例子:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"esp_lcd_panel_ops.h"</span></span></span><br><span class="line"></span><br><span class="line">    esp_lcd_panel_reset(panel_handle);</span><br><span class="line">    esp_lcd_panel_init(panel_handle);</span><br><span class="line">    <span class="comment">// Set inversion, x/y coordinate order, x/y mirror according to your LCD module spec</span></span><br><span class="line">    <span class="comment">// the gap is LCD panel specific, even panels with the same driver IC, can have different gap value</span></span><br><span class="line">    esp_lcd_panel_invert_color(panel_handle, <span class="literal">true</span>);</span><br><span class="line">    esp_lcd_panel_set_gap(panel_handle, <span class="number">0</span>, <span class="number">20</span>);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="三，使用屏幕"><a href="#三，使用屏幕" class="headerlink" title="三，使用屏幕"></a>三，使用屏幕</h2><p>ESP库提供了最基础的画点函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_panel_draw_bitmap</span><span class="params">(<span class="type">esp_lcd_panel_handle_t</span> panel, <span class="type">int</span> x_start, <span class="type">int</span> y_start, <span class="type">int</span> x_end, <span class="type">int</span> y_end, <span class="type">const</span> <span class="type">void</span> *color_data)</span></span><br></pre></td></tr></table></figure>
+
+<p>一个窗口中绘制像素点。</p>
+<p>Tips:<strong>start点被包含而end点没有被包含</strong>。</p>
+<p><strong>当初始化化完IO句柄后，其实已经可以实现发送和接收数据来驱动屏幕</strong>了，后面不过是封装了特定的驱动。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_panel_io_rx_param</span><span class="params">(<span class="type">esp_lcd_panel_io_handle_t</span> io, <span class="type">int</span> lcd_cmd, <span class="type">void</span> *param, <span class="type">size_t</span> param_size)</span></span><br></pre></td></tr></table></figure>
+
+<p>发送命令并接收参数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_panel_io_tx_param</span><span class="params">(<span class="type">esp_lcd_panel_io_handle_t</span> io, <span class="type">int</span> lcd_cmd, <span class="type">const</span> <span class="type">void</span> *param, <span class="type">size_t</span> param_size)</span></span><br></pre></td></tr></table></figure>
+
+<p>发送命令和参数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">esp_err_t</span> <span class="title function_">esp_lcd_panel_io_tx_color</span><span class="params">(<span class="type">esp_lcd_panel_io_handle_t</span> io, <span class="type">int</span> lcd_cmd, <span class="type">const</span> <span class="type">void</span> *color, <span class="type">size_t</span> color_size)</span></span><br></pre></td></tr></table></figure>
+
+<p>发送颜色数据。</p>
+<p>这个函数将要发送的数据加入到后台队列，由DMA+中断发送。</p>
+<p>由于有缓存时间存在，因此需要回调处理数据的生命周期。</p>
+<h2 id="四，SDKconfig中的设置"><a href="#四，SDKconfig中的设置" class="headerlink" title="四，SDKconfig中的设置"></a>四，SDKconfig中的设置</h2><p>在<code>LCD and Touch Panel---&gt;LCD Peripheral Configuration</code>中，需要注意这样一个设置<code>LCD panel io foramt buffer size</code>。该参数的值与io层单次最大发送数据量<code>param_size</code>有关，<strong>如果该值设置过小，会导致发送时报错</strong>。</p>
+<p>在本人移植驱动过程中，由于没有设置该值，导致在初始化时在下面函数中报错</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">esp_lcd_panel_io_tx_param(io, <span class="number">0x2D</span>, cmd_192,<span class="number">192</span>);</span><br></pre></td></tr></table></figure>
+
+<p>192超过了默认值大小，导致报错。</p>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/5914/">https://lostacnet.top/post/5914/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ESP-IDF%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E5%B9%B6%E5%8F%A3LCD"><span class="toc-number">1.</span> <span class="toc-text">ESP-IDF学习笔记-并口LCD</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%8C%E9%85%8D%E7%BD%AE%E6%AD%A5%E9%AA%A4%E6%A6%82%E8%A7%88"><span class="toc-number">1.1.</span> <span class="toc-text">一，配置步骤概览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E6%80%BB%E7%BA%BF"><span class="toc-number">1.1.1.</span> <span class="toc-text">初始化总线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E4%B8%80%E4%B8%AAi80panel%E7%9A%84IO"><span class="toc-number">1.1.2.</span> <span class="toc-text">定义一个i80panel的IO</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AApanel"><span class="toc-number">1.1.3.</span> <span class="toc-text">创建一个panel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E5%B1%8F%E5%B9%95"><span class="toc-number">1.1.4.</span> <span class="toc-text">初始化屏幕</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E5%85%B6%E4%BB%96%E5%8F%82%E6%95%B0"><span class="toc-number">1.1.5.</span> <span class="toc-text">设置其他参数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8C%E9%85%8D%E7%BD%AE%E6%AD%A5%E9%AA%A4"><span class="toc-number">1.2.</span> <span class="toc-text">二，配置步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E6%80%BB%E7%BA%BF-1"><span class="toc-number">1.2.1.</span> <span class="toc-text">初始化总线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BAIO%E8%AE%BE%E5%A4%87%E5%8F%A5%E6%9F%84"><span class="toc-number">1.2.2.</span> <span class="toc-text">创建IO设备句柄</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BApanel%E5%8F%A5%E6%9F%84"><span class="toc-number">1.2.3.</span> <span class="toc-text">创建panel句柄</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E5%87%BD%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.2.4.</span> <span class="toc-text">调用函数初始化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%8C%E4%BD%BF%E7%94%A8%E5%B1%8F%E5%B9%95"><span class="toc-number">1.3.</span> <span class="toc-text">三，使用屏幕</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%EF%BC%8CSDKconfig%E4%B8%AD%E7%9A%84%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.4.</span> <span class="toc-text">四，SDKconfig中的设置</span></a></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
