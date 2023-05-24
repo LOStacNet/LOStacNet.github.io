@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>Clion移植LVGL模拟器 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="Clion移植LVGL模拟器LVGL官方提供的模拟器方案是在Win上使用codeblock，但是其推荐的Linux上使用的vscode等一些项目是使用Cmake构建的，而Clion这这个超级好用而且学生免费的IDE又正好是使用Cmake作为构建工具的，理论是可以运行所有Cmake工程的。所以打算尝试将模拟器移植到Clion下。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Clion移植LVGL模拟器">
+<meta property="og:url" content="https://lostacnet.top/post/52439/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="Clion移植LVGL模拟器LVGL官方提供的模拟器方案是在Win上使用codeblock，但是其推荐的Linux上使用的vscode等一些项目是使用Cmake构建的，而Clion这这个超级好用而且学生免费的IDE又正好是使用Cmake作为构建工具的，理论是可以运行所有Cmake工程的。所以打算尝试将模拟器移植到Clion下。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s1.ax1x.com/2023/05/25/p9HpjIJ.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/05/25/p9Hpxi9.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/05/25/p9HpzGR.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/05/25/p9H9SR1.png">
+<meta property="article:published_time" content="2023-05-24T14:39:46.000Z">
+<meta property="article:modified_time" content="2023-05-24T17:16:04.913Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="lvgl">
+<meta property="article:tag" content="Cmake">
+<meta property="article:tag" content="SDL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s1.ax1x.com/2023/05/25/p9HpjIJ.png">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            Clion移植LVGL模拟器
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/52439/" class="article-date">
+	  <time datetime="2023-05-24T14:39:46.000Z" itemprop="datePublished">5月 24</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/c/">c</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/Cmake/" rel="tag">Cmake</a>, <a class="article-tag-none-link" href="/tags/SDL/" rel="tag">SDL</a>, <a class="article-tag-none-link" href="/tags/lvgl/" rel="tag">lvgl</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/52439/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 1.6k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 7(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="Clion移植LVGL模拟器"><a href="#Clion移植LVGL模拟器" class="headerlink" title="Clion移植LVGL模拟器"></a>Clion移植LVGL模拟器</h1><p>LVGL官方提供的模拟器方案是在Win上使用codeblock，但是其推荐的Linux上使用的vscode等一些项目是使用Cmake构建的，而Clion这这个超级好用而且学生免费的IDE又正好是使用Cmake作为构建工具的，理论是可以运行所有Cmake工程的。所以打算尝试将模拟器移植到Clion下。</p>
+<span id="more"></span>
+
+<p>本文需要准备的环境：</p>
+<ul>
+<li>Clion：喷气机的C语言IDE，使用学生邮箱免费使用。已配置好Mingw的C语言环境。</li>
+<li>SDL：一个C语言图形库，lvgl模拟器的依赖。<a target="_blank" rel="noopener" href="https://www.libsdl.org/">官网</a>，请自行下载<code>SDL2-devel-xxx-mingw</code>版本的压缩包。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/lvgl/lvgl">lvgl</a>：图形库仓库，这里使用v8.2版本。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/lvgl/lv_port_pc_eclipse">lv_port_pc_eclipse</a>：一个基于Cmake的模拟器仓库，本文的移植对象。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/lvgl/lv_drivers">lv_drivers</a>：lvgl在pc上的驱动库。</li>
+</ul>
+<h2 id="一，SDL库的安装"><a href="#一，SDL库的安装" class="headerlink" title="一，SDL库的安装"></a>一，SDL库的安装</h2><p>由于pc的lvgl依赖于SDL库运行，这里需要先在Clion中添加SDL库。</p>
+<h3 id="解压SDL"><a href="#解压SDL" class="headerlink" title="解压SDL"></a>解压SDL</h3><p>将下载的SDL库解压到一个文件夹，我下载的是<code>SDL2-devel-2.26.5-mingw.zip</code>，将压缩包解压，随便放一个地方。由于我们使用Cmake直接添加库文件，因此不需要设置环境变量之类（网上大都将SDL目录复制到了MinGW目录下，这样虽然方便添加，但会污染MinGW目录，不是很好）。记住<code>x86_64-w64-mingw32</code>目录的位置。</p>
+<p><img src="https://s1.ax1x.com/2023/05/25/p9HpjIJ.png" alt="image-20230524235024752"></p>
+<p> 该目录如下：</p>
+<p><img src="https://s1.ax1x.com/2023/05/25/p9Hpxi9.png" alt="image-20230525001733713"></p>
+<ul>
+<li><code>bin</code>包含Dll动态链接库</li>
+<li><code>include</code>包含了头文件</li>
+<li><code>lib</code>包含了静态库文件</li>
+</ul>
+<p>Tip：以下内容仅供学习，如需快速移植请直接到第二节</p>
+<h3 id="设置Cmake"><a href="#设置Cmake" class="headerlink" title="设置Cmake"></a>设置Cmake</h3><p>新建一个Clion工程，打开CMakeLists.txt,添加以下内容。</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 以下为工程设置，每个人不一样</span></span><br><span class="line"><span class="keyword">cmake_minimum_required</span>(VERSION <span class="number">3.22</span>)</span><br><span class="line"><span class="keyword">project</span>(<span class="keyword">test</span> C)</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(CMAKE_C_STANDARD <span class="number">99</span>)</span><br><span class="line"><span class="comment"># 这里设置了一个变量，将上面要记住的目录保存到SDL2_DIR</span></span><br><span class="line"><span class="keyword">set</span>(SDL2_DIR E:/C_Lib/SDL2-<span class="number">2.26</span>.<span class="number">5</span>/x86_64-w64-mingw32)</span><br><span class="line"><span class="comment"># 添加头文件地址</span></span><br><span class="line"><span class="keyword">include_directories</span>(<span class="variable">${SDL2_DIR}</span>/<span class="keyword">include</span>)</span><br><span class="line"><span class="comment"># 添加库文件夹地址，添加dll文件夹和lib文件夹</span></span><br><span class="line"><span class="keyword">link_directories</span>(<span class="variable">${SDL2_DIR}</span>/bin <span class="variable">${SDL2_DIR}</span>/lib)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_executable</span>(<span class="keyword">test</span> main.c)</span><br><span class="line"><span class="comment"># 设置test编译项目需要连接的库，注意顺序</span></span><br><span class="line"><span class="keyword">target_link_libraries</span>(<span class="keyword">test</span> mingw32 SDL2 SDL2main )</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在上面的代码中，需要使用<code>link_directories()</code><strong>同时添加bin和lib这两个库文件搜索路径。</strong></p>
+<p>按道理说dll应该只需要在运行时在引用，在编译时不需要，只需要静态库文件，但这里如果不加bin就会在编译时报错，不知道为什么。</p>
+<p>使用<code>target_link_libraries()</code>添加项目要使用的库文件，<strong>注意添加顺序，被依赖的库放在依赖它的库的后面，被优先编译</strong>。</p>
+<p>这里需要注意，因为S<strong>DL2在引用头文件时，将用户的main重定义为了SDLmain进行了接管</strong>，因此如果把mingw放最先编译，可能直接找不到WinMain报错。</p>
+<h3 id="运行测试代码"><a href="#运行测试代码" class="headerlink" title="运行测试代码"></a>运行测试代码</h3><p>main.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"SDL2/SDL.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span> {</span><br><span class="line">    <span class="comment">// 初始化SDL</span></span><br><span class="line">    SDL_Init(SDL_INIT_VIDEO);</span><br><span class="line">    <span class="comment">// 创建SDL窗口指针</span></span><br><span class="line">    SDL_Window *window = SDL_CreateWindow(</span><br><span class="line">            <span class="string">"SDL2Test"</span>,</span><br><span class="line">            SDL_WINDOWPOS_UNDEFINED,</span><br><span class="line">            SDL_WINDOWPOS_UNDEFINED,</span><br><span class="line">            <span class="number">640</span>,</span><br><span class="line">            <span class="number">480</span>,</span><br><span class="line">            <span class="number">0</span></span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建渲染器</span></span><br><span class="line">    SDL_Renderer *renderer = SDL_CreateRenderer(window, <span class="number">-1</span>, SDL_RENDERER_SOFTWARE);</span><br><span class="line">    <span class="comment">// 设置渲染器</span></span><br><span class="line">    SDL_SetRenderDrawColor(renderer, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, SDL_ALPHA_OPAQUE);</span><br><span class="line">    SDL_RenderClear(renderer);</span><br><span class="line">    <span class="comment">// 渲染</span></span><br><span class="line">    SDL_RenderPresent(renderer);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 等待3000ms</span></span><br><span class="line">    SDL_Delay(<span class="number">3000</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 销毁窗口&amp;退出</span></span><br><span class="line">    SDL_DestroyWindow(window);</span><br><span class="line">    SDL_Quit();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>测试效果为出现黑色窗口，几秒后结束。</p>
+<p><img src="https://s1.ax1x.com/2023/05/25/p9HpzGR.png" alt="image-20230525005702346"></p>
+<p>可能的报错：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">E:/Code_R/test/main.c: In function 'SDL_main':</span><br><span class="line">E:/Code_R/test/main.c:4:1: error: number of arguments doesn't match prototype</span><br><span class="line">    4 | int main() {</span><br><span class="line">      | ^~~</span><br><span class="line">In file included from E:/C_Lib/SDL2-2.26.5/x86_64-w64-mingw32/include/SDL2/SDL.h:32,</span><br><span class="line">                 from E:/Code_R/test/main.c:2:</span><br><span class="line">E:/C_Lib/SDL2-2.26.5/x86_64-w64-mingw32/include/SDL2/SDL_main.h:155:29: error: prototype declaration</span><br><span class="line">  155 | extern SDLMAIN_DECLSPEC int SDL_main(int argc, char *argv[]);</span><br><span class="line">      |                             ^~~~~~~~</span><br><span class="line">ninja: build stopped: subcommand failed.</span><br></pre></td></tr></table></figure>
+
+<p>这是由于SDL的接管机制，将main()如下重定义：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> main    SDL_main</span></span><br><span class="line"><span class="keyword">extern</span> SDLMAIN_DECLSPEC <span class="type">int</span> <span class="title function_">SDL_main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span>;</span><br></pre></td></tr></table></figure>
+
+<p>因此main函数必须为以下形式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span>{}</span><br></pre></td></tr></table></figure>
+
+<p>可能的报错：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">undefined reference to `WinMain'</span><br></pre></td></tr></table></figure>
+
+<p>同样是SDL接管机制导致找不到main函数，这里是因为<strong>链接顺序问题</strong>导致包含真正main的SDL没有先编译。注意<code>target_link_libraries()</code>的顺序。</p>
+<p>可能的报错：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">E:\CLion 2022.1.2\bin\mingw\bin/ld.exe: /Users/valve/release/SDL2/SDL2-2.26.5-source/foo-x64/../src/main/windows/SDL_windows_main.c:73: undefined reference to `SDL_memcpy'</span><br><span class="line">E:\CLion 2022.1.2\bin\mingw\bin/ld.exe: /Users/valve/release/SDL2/SDL2-2.26.5-source/foo-x64/../src/main/windows/SDL_windows_main.c:74: undefined reference to `SDL_free'</span><br><span class="line">E:\CLion 2022.1.2\bin\mingw\bin/ld.exe: /Users/valve/release/SDL2/SDL2-2.26.5-source/foo-x64/../src/main/windows/SDL_windows_main.c:64: undefined reference to `SDL_wcslen'</span><br><span class="line">E:\CLion 2022.1.2\bin\mingw\bin/ld.exe: /Users/valve/release/SDL2/SDL2-2.26.5-source/foo-x64/../src/main/windows/SDL_windows_main.c:64: undefined reference to `SDL_iconv_string'</span><br><span class="line">E:\CLion 2022.1.2\bin\mingw\bin/ld.exe: E:/C_Lib/SDL2-2.26.5/x86_64-w64-mingw32/lib/libSDL2main.a(SDL_windows_main.o): in function `OutOfMemory':</span><br><span class="line">/Users/valve/release/SDL2/SDL2-2.26.5-source/foo-x64/../src/main/windows/SDL_windows_main.c:26: undefined reference to `SDL_ShowSimpleMessageBox'</span><br><span class="line">E:\CLion 2022.1.2\bin\mingw\bin/ld.exe: E:/C_Lib/SDL2-2.26.5/x86_64-w64-mingw32/lib/libSDL2main.a(SDL_windows_main.o): in function `main_getcmdline':</span><br><span class="line">/Users/valve/release/SDL2/SDL2-2.26.5-source/foo-x64/../src/main/windows/SDL_windows_main.c:79: undefined reference to `SDL_SetMainReady'</span><br></pre></td></tr></table></figure>
+
+<p><strong>没有添加bin路径或者link_directories中lib与bin顺序的问题</strong>（这个顺序是什么玄学问题）。</p>
+<p>可能的问题：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cannot find -lSDL2main</span><br></pre></td></tr></table></figure>
+
+<p>link_directories没有添加lib.</p>
+<p>可能成功编译但是运行失败，这是因为<strong>缺少dll库</strong>，将bin文件夹下的dll复制到exe目录下即可。</p>
+<p>其他安装方法：</p>
+<p>使用SDL库中<code>.cmake</code>文件，使用<code>find_package(SDL2 REQUIRED SDL2)</code></p>
+<p> LVGL项目中使用这种方法。</p>
+<h2 id="二，移植lvgl模拟器"><a href="#二，移植lvgl模拟器" class="headerlink" title="二，移植lvgl模拟器"></a>二，移植lvgl模拟器</h2><p>将下载的lvgl库和lv_drivers分别放到lv_port_pc_eclipse中的相应文件夹，使用Clion打开项目。</p>
+<p>此时应该会报错：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">CMake Error at CMakeLists.txt:10 (find_package):</span><br><span class="line">  By not providing "FindSDL2.cmake" in CMAKE_MODULE_PATH this project has</span><br><span class="line">  asked CMake to find a package configuration file provided by "SDL2", but</span><br><span class="line">  CMake did not find one.</span><br><span class="line"></span><br><span class="line">  Could not find a package configuration file provided by "SDL2" with any of</span><br><span class="line">  the following names:</span><br><span class="line"></span><br><span class="line">    SDL2Config.cmake</span><br><span class="line">    sdl2-config.cmake</span><br><span class="line"></span><br><span class="line">  Add the installation prefix of "SDL2" to CMAKE_PREFIX_PATH or set</span><br><span class="line">  "SDL2_DIR" to a directory containing one of the above files.  If "SDL2"</span><br><span class="line">  provides a separate development package or SDK, be sure it has been</span><br><span class="line">  installed.</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这是需要设置SDL2中<code>SDL2Config.cmake</code>和<code> sdl2-config.cmake</code>文件所在目录。添加：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span>(SDL2_DIR E:/C_Lib/SDL2-<span class="number">2.26</span>.<span class="number">5</span>/x86_64-w64-mingw32/lib/cmake/SDL2)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>可能报错：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">undefined reference to `SDL_main'</span><br></pre></td></tr></table></figure>
+
+<p>这是删除了SDL接管导致的，参考main.c的13行，<strong>注释掉这个行</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> SDL_MAIN_HANDLED <span class="comment">/*To fix SDL's "undefined reference to WinMain" issue*/</span></span></span><br></pre></td></tr></table></figure>
+
+<p>加了这个修复反而报错了，估计是linux与win的不同导致的。</p>
+<p>之后将dll复制到生成的exe相同目录下。</p>
+<p>直接运行就行了。</p>
+<p><img src="https://s1.ax1x.com/2023/05/25/p9H9SR1.png" alt="image-20230525011356379"></p>
+<p>这里涉及到很多关于C语言编译过程的问题，需要补习很多知识。</p>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/52439/">https://lostacnet.top/post/52439/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Clion%E7%A7%BB%E6%A4%8DLVGL%E6%A8%A1%E6%8B%9F%E5%99%A8"><span class="toc-number">1.</span> <span class="toc-text">Clion移植LVGL模拟器</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%8CSDL%E5%BA%93%E7%9A%84%E5%AE%89%E8%A3%85"><span class="toc-number">1.1.</span> <span class="toc-text">一，SDL库的安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%8E%8BSDL"><span class="toc-number">1.1.1.</span> <span class="toc-text">解压SDL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AECmake"><span class="toc-number">1.1.2.</span> <span class="toc-text">设置Cmake</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E6%B5%8B%E8%AF%95%E4%BB%A3%E7%A0%81"><span class="toc-number">1.1.3.</span> <span class="toc-text">运行测试代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8C%E7%A7%BB%E6%A4%8Dlvgl%E6%A8%A1%E6%8B%9F%E5%99%A8"><span class="toc-number">1.2.</span> <span class="toc-text">二，移植lvgl模拟器</span></a></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
