@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>基于matlab的快速定位限速标志牌算法 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="基于matlab的快速定位限速标志牌算法数学实验的综合实验设计，要求使用matlab建立模型和算法，能够快速从图片中取出含有限速标志的图片区域。并截取保存为图片文件。 要求算法能够自动提取红色圆形图框区域。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于matlab的快速定位限速标志牌算法">
+<meta property="og:url" content="https://lostacnet.top/post/52922/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="基于matlab的快速定位限速标志牌算法数学实验的综合实验设计，要求使用matlab建立模型和算法，能够快速从图片中取出含有限速标志的图片区域。并截取保存为图片文件。 要求算法能够自动提取红色圆形图框区域。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s1.ax1x.com/2023/05/30/p9juqxI.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/05/30/p9juOMt.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/05/30/p9juXsP.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/05/30/p9jujqf.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/05/30/p9juzdS.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/05/30/p9jKSIg.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/05/30/p9jK9iQ.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/05/30/p9jKCGj.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/05/30/p9jKPRs.png">
+<meta property="article:published_time" content="2023-05-29T15:22:04.000Z">
+<meta property="article:modified_time" content="2023-05-30T03:18:38.675Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="matlab">
+<meta property="article:tag" content="图像处理">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s1.ax1x.com/2023/05/30/p9juqxI.png">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            基于matlab的快速定位限速标志牌算法
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/52922/" class="article-date">
+	  <time datetime="2023-05-29T15:22:04.000Z" itemprop="datePublished">5月 29</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1/">课程设计</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/matlab/" rel="tag">matlab</a>, <a class="article-tag-none-link" href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" rel="tag">图像处理</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/52922/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 2.2k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 8(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="基于matlab的快速定位限速标志牌算法"><a href="#基于matlab的快速定位限速标志牌算法" class="headerlink" title="基于matlab的快速定位限速标志牌算法"></a>基于matlab的快速定位限速标志牌算法</h1><p>数学实验的综合实验设计，要求使用matlab建立模型和算法，能够快速从图片中取出含有限速标志的图片区域。并截取保存为图片文件。 要求算法能够自动提取红色圆形图框区域。</p>
+<span id="more"></span>
+
+<h2 id="一，题目分析"><a href="#一，题目分析" class="headerlink" title="一，题目分析"></a>一，题目分析</h2><p>要定位限速标志，首先需要明白标志的特征，一个典型的限速标志如下：</p>
+<p><img src="https://s1.ax1x.com/2023/05/30/p9juqxI.png" alt="image-20230530000433573"></p>
+<p>该图像为一圈红色圆形区域中间包含黑色数字的形式组成，题目上要求能够自动提取红色圆形图框区域，那我们只需要想办法把这个圆弄出来。</p>
+<p>那么基本思想如下：</p>
+<ul>
+<li>提取出图像中的红色像素区域</li>
+<li>找到这些像素区域中的圆</li>
+<li>根据圆的位置对原图进行截图</li>
+<li><del>对截取到的图片进行进一步判别</del></li>
+</ul>
+<h2 id="二，具体步骤"><a href="#二，具体步骤" class="headerlink" title="二，具体步骤"></a>二，具体步骤</h2><p>首先亮出例程图：</p>
+<p><img src="https://s1.ax1x.com/2023/05/30/p9juOMt.png" alt="image-20230530003135117"></p>
+<h3 id="图片的读取与转化"><a href="#图片的读取与转化" class="headerlink" title="图片的读取与转化"></a>图片的读取与转化</h3><p>首先需要对图片进行读取和转化。</p>
+<p>使用<code>imread(file)</code>读取图像，该函数会返回RGB图像数组:</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">image=imread(<span class="string">'pic/include-80.png'</span>);</span><br></pre></td></tr></table></figure>
+
+<p>由于RGB图像不易处理，这里需先转换为HSV图像。</p>
+<blockquote>
+<p>关于RGB,HSV,HSL：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/67930839">三分钟带你快速学习RGB、HSV和HSL颜色空间</a></p>
+</blockquote>
+<p>使用<code>rgb2hsv(img)</code>进行转化，该函数会返回一个MxNx3的数组，对应图像的H，S，V分量。</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">hsvImg=<span class="built_in">rgb2hsv</span>(image);<span class="comment">%转换到HSV空间</span></span><br><span class="line">h1=hsvImg(:,:,<span class="number">1</span>);<span class="comment">%H分量</span></span><br><span class="line">s1=hsvImg(:,:,<span class="number">2</span>);<span class="comment">%S分量</span></span><br><span class="line">v1=hsvImg(:,:,<span class="number">3</span>);<span class="comment">%V分量  </span></span><br></pre></td></tr></table></figure>
+
+<p>之后，需要提取出其中的红色像素点。该步骤可以使用matlab数组运算和逻辑运算，<strong>判断HSV三个域中的每个像素点是否在红色像素点数值范围，是为1，否为0，最后将三个域的数组相与运算，就得到了只有红色像素位置信息图片</strong>，顺便还进行了<strong>图像的二值化</strong>。</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hsvReg1=((h1&lt;=<span class="number">0.056</span>&amp;h1&gt;=<span class="number">0</span>)|(h1&gt;=<span class="number">0.740</span>&amp;h1&lt;=<span class="number">1.0</span>)) &amp; s1&gt;=<span class="number">0.169</span>&amp; s1&lt;=<span class="number">1.0</span>  &amp;v1&gt;=<span class="number">0.180</span>&amp;v1&lt;=<span class="number">1.0</span>;<span class="comment">%提取红色分量 </span></span><br><span class="line"><span class="built_in">figure</span>;imshow(hsvReg1);title(<span class="string">'原图hsv检测图像'</span>);</span><br></pre></td></tr></table></figure>
+
+<p>得到的结果如下:</p>
+<p><img src="https://s1.ax1x.com/2023/05/30/p9juXsP.png" alt="image-20230530003214590"></p>
+<h3 id="图像的降噪处理"><a href="#图像的降噪处理" class="headerlink" title="图像的降噪处理"></a>图像的降噪处理</h3><p>可以看到，此时图像已经可以十分清楚的看到圆环了。</p>
+<p>之后需要对图像进行<strong>降噪处理</strong>，<strong>消除图像中像素点的很少的无效区域</strong>，便于之后对图像进行处理。</p>
+<p>使用<code>bwareaopen(BW,P)</code>删除二值化图像BW中像素量少于P的所有连通分量。可以<strong>将像素少于P的色块区域删除</strong>。</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hsvReg1=bwareaopen(hsvReg1,<span class="number">110</span>);<span class="comment">%110为去除像素点阙值</span></span><br><span class="line"><span class="built_in">figure</span>;imshow(hsvReg1);title(<span class="string">'图像降噪结果'</span>);</span><br></pre></td></tr></table></figure>
+
+<p>其中P的值需要根据实际情况进行选择，<strong>太大可能导致较小的图像被直接删没了，太大图像就会有很多杂点</strong>。</p>
+<p>运行结果:</p>
+<p><img src="https://s1.ax1x.com/2023/05/30/p9jujqf.png" alt="image-20230530004615534"></p>
+<p>可以看到少了很多杂点。</p>
+<h3 id="填充平滑图像"><a href="#填充平滑图像" class="headerlink" title="填充平滑图像"></a>填充平滑图像</h3><p>现在我们得到了包含各种色块的图像，由于我们使用圆度进行检测，因此需要让目标色块尽可能平滑饱满，跟圆长得更加接近，减少以下情况对识别的干扰：</p>
+<p><img src="https://s1.ax1x.com/2023/05/30/p9juzdS.png" alt="image-20230530005827801"></p>
+<p>首先需要填充图像内部的小黑点。这里使用闭运算<code>imclose(I,SE)</code>，使用结构元素 <code>SE</code> 对灰度或二值图像 <code>I</code> 执行形态学闭运算。形态学闭运算是先膨胀后腐蚀，这两种运算使用相同的结构元素。</p>
+<p>这里补充一下关于图像开闭运算的知识：</p>
+<ul>
+<li><p>膨胀：求局部最大值的操作</p>
+</li>
+<li><p>腐蚀：求局部最小值的操作</p>
+</li>
+<li><p>开运算<code>imopen()</code>：先腐蚀后膨胀称为开 (Open)</p>
+<p>  局部的区域大小和形状由SE指定。原图经过开运算后，去除孤立的小点，毛刺和小桥（即连通两块区域的小点），而总的位置和形状不变。</p>
+</li>
+<li><p>闭运算<code>imclose()</code>：先膨胀后腐蚀称为闭 (Close)</p>
+<p>  局部的区域大小和形状由SE指定。原图经过闭运算后，能够填平小湖（即小孔），弥合小缝隙，而总的位置和形状不变。</p>
+</li>
+</ul>
+<blockquote>
+<p>参考文章:<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_36815313/article/details/109727778">开闭运算 imopen imclose</a></p>
+</blockquote>
+<p><code>SE</code>可由函数<code>strel()</code>生成，该函数可以生成很多类型的平面元素结构，我们只需要使用<code>SE = strel("disk",r)</code>盘型结构，其他结构可以参考<a target="_blank" rel="noopener" href="https://ww2.mathworks.cn/help/images/ref/strel.html">官方文档</a>。</p>
+<p><img src="https://s1.ax1x.com/2023/05/30/p9jKSIg.png" alt="image-20230530011603919"></p>
+<p>对图像进行闭运算：</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">se=strel(<span class="string">'disk'</span>,<span class="number">2</span>);<span class="comment">%半径为2</span></span><br><span class="line">hsvReg1=imclose(hsvReg1,se);</span><br><span class="line">hsvReg1=imfill(hsvReg1,<span class="string">'holes'</span>);</span><br><span class="line"><span class="built_in">figure</span>;imshow(hsvReg1);title(<span class="string">'图像填充平滑后结果'</span>);</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>imfill(hsvReg1,'holes')</code>填充了图像中的孔，即无<strong>法通过从图像边缘填充背景来到达的一组背景像素</strong>。结果是圆环变成圆。</p>
+<p><img src="https://s1.ax1x.com/2023/05/30/p9jK9iQ.png" alt="image-20230530011913980"></p>
+<h3 id="划分连通区域"><a href="#划分连通区域" class="headerlink" title="划分连通区域"></a>划分连通区域</h3><p>该步骤将上图中的图块分别标记编号并求其边缘点。</p>
+<p>使用函数<code>[B,L]=bwboundaries(hsvReg1,'noholes')</code>，该函数将图像上的连通域分别标记并记录边界点在cell类型的B中，在L中储存标记后的区域。</p>
+<p>其中指定参数<code>noholes</code>将不会将hole作为新对象，而是将包括hole的整体作为一个整体。</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[B,L]=bwboundaries(hsvReg1,<span class="string">'noholes'</span>);</span><br><span class="line"><span class="built_in">figure</span>;imshow(label2rgb(L,@jet,[<span class="number">.5</span> <span class="number">.5</span> <span class="number">.5</span>]));<span class="comment">%5</span></span><br><span class="line"><span class="built_in">hold</span> on;</span><br><span class="line"><span class="keyword">for</span> k=<span class="number">1</span>:<span class="built_in">length</span>(B)</span><br><span class="line">    boundary=B{k};</span><br><span class="line">    <span class="built_in">plot</span>(boundary(:,<span class="number">2</span>),boundary(:,<span class="number">1</span>),<span class="string">'w'</span>,<span class="string">'LineWidth'</span>,<span class="number">2</span>);</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>处理结果：</p>
+<p><img src="https://s1.ax1x.com/2023/05/30/p9jKCGj.png" alt="image-20230530101400321"></p>
+<p>区分了每个连通域及其边界。</p>
+<h3 id="计算连通域特性"><a href="#计算连通域特性" class="headerlink" title="计算连通域特性"></a>计算连通域特性</h3><p>获得了不同连通域后，我们需要计算不同连通域的特性。</p>
+<p>使用<code>regionprops(BW,properties)</code>进行计算，根据<code>properties</code>字符串计算标记好连通域的BW中不同连通域的不同特性，并返回结构体数组。</p>
+<p>在该题中，我们依据图形的圆度判断是否为圆，因此我们需要求:</p>
+<ul>
+<li><code>Centroid</code>:区域的质心，对应圆心</li>
+<li><code>Area</code>:实际的像素数，对应面积</li>
+<li><code>Circularity</code>:圆度，由(4*Area *pi)/(Perimeter^2)计算，由于matlab2017没有，因此直接求<code>Perimeter</code></li>
+<li><code>Perimeter</code>:围绕区域的边界，如果图像包含不连续区域，<code>regionprops</code> 将返回意外结果。(所以先填充平滑)</li>
+</ul>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">stats=regionprops(L,<span class="string">'Area'</span>,<span class="string">'Centroid'</span>,<span class="string">'Perimeter'</span>);</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="提取图形中的圆"><a href="#提取图形中的圆" class="headerlink" title="提取图形中的圆"></a>提取图形中的圆</h3><p>在该步骤中，我们遍历每一个连通域，求其圆度，保持圆度大于阈值<code>threshold</code>的连通域的圆心，半径(由周长计算)。</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">threshold=<span class="number">0.88</span>;<span class="comment">%圆度的阈值</span></span><br><span class="line"></span><br><span class="line">cents={};<span class="comment">%圆心</span></span><br><span class="line">rs=[];<span class="comment">%周长</span></span><br><span class="line">stats=regionprops(L,<span class="string">'Area'</span>,<span class="string">'Centroid'</span>,<span class="string">'Perimeter'</span>);</span><br><span class="line"><span class="keyword">for</span> k=<span class="number">1</span>:<span class="built_in">length</span>(B)</span><br><span class="line">    area=stats(k).Area;</span><br><span class="line">    perimeter=stats(k).Perimeter;</span><br><span class="line">    Circularity=<span class="number">4</span>*<span class="built_in">pi</span>*area/perimeter^<span class="number">2</span>;<span class="comment">%计算圆度</span></span><br><span class="line">    <span class="keyword">if</span> Circularity&gt;threshold</span><br><span class="line">        cents{<span class="keyword">end</span>+<span class="number">1</span>}=stats(k).Centroid;</span><br><span class="line">        r=perimeter/(<span class="number">2</span>*<span class="built_in">pi</span>);</span><br><span class="line">        rs(<span class="keyword">end</span>+<span class="number">1</span>)=r;</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="裁剪图像"><a href="#裁剪图像" class="headerlink" title="裁剪图像"></a>裁剪图像</h3><p>获得圆心和半径后，我们可以计算出圆所在图像区域，使用<code>imcrop(I,rect)</code>进行裁剪。</p>
+<p><code>rect</code>是一个四元素数组，第一二个元素为矩形的左上角坐标，第三个元素是矩形的长，第四个是宽。</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> <span class="built_in">i</span>=<span class="number">1</span>:<span class="built_in">length</span>(cents)</span><br><span class="line">    rect=[cents{<span class="built_in">i</span>}(<span class="number">1</span>)-rs(<span class="built_in">i</span>)  cents{<span class="built_in">i</span>}(<span class="number">2</span>)-rs(<span class="built_in">i</span>) <span class="number">2</span>*rs(<span class="built_in">i</span>) <span class="number">2</span>*rs(<span class="built_in">i</span>)];</span><br><span class="line">    result=imcrop(image,rect);</span><br><span class="line">    <span class="built_in">figure</span>;imshow(result);title(<span class="string">'图像裁剪结果'</span>);</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>结果如下：</p>
+<p><img src="https://s1.ax1x.com/2023/05/30/p9jKPRs.png" alt="image-20230530105244110"></p>
+<h2 id="三，结论"><a href="#三，结论" class="headerlink" title="三，结论"></a>三，结论</h2><p>本方法使用提取红色像素进行二值化，通过对二值化图像找圆的方式找到原图中的红色圆形区域，以定位限速牌。由于使用圆度进行判断，判断方法较为单一，<strong>当阈值过大，会导致变形的限速牌无法识别，当阈值过小，一些图像则会被误识别</strong>，因此还需要进行改进，以获得更加准确的方案。</p>
+<p>目前，可以考虑对裁剪后的图像进行文字识别OCR，如果有限速的数字则可以更为准确的判断。</p>
+<h2 id="四，代码附录"><a href="#四，代码附录" class="headerlink" title="四，代码附录"></a>四，代码附录</h2><figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">image=imread(<span class="string">'pic/include-80.png'</span>);</span><br><span class="line"><span class="comment">% image=imread('pic/include-120-100.png');</span></span><br><span class="line"><span class="comment">% image=imread('pic/1.png');</span></span><br><span class="line">threshold=<span class="number">0.95</span>;<span class="comment">%圆度的阈值</span></span><br><span class="line"><span class="comment">%=======  HSV颜色分割图像  =======%</span></span><br><span class="line">hsvImg=<span class="built_in">rgb2hsv</span>(image);<span class="comment">%转换到HSV空间</span></span><br><span class="line">h1=hsvImg(:,:,<span class="number">1</span>);<span class="comment">%H分量</span></span><br><span class="line">s1=hsvImg(:,:,<span class="number">2</span>);<span class="comment">%S分量</span></span><br><span class="line">v1=hsvImg(:,:,<span class="number">3</span>);<span class="comment">%V分量  </span></span><br><span class="line">hsvReg1=((h1&lt;=<span class="number">0.056</span>&amp;h1&gt;=<span class="number">0</span>)|(h1&gt;=<span class="number">0.740</span>&amp;h1&lt;=<span class="number">1.0</span>)) &amp; s1&gt;=<span class="number">0.169</span>&amp; s1&lt;=<span class="number">1.0</span>  &amp;v1&gt;=<span class="number">0.180</span>&amp;v1&lt;=<span class="number">1.0</span>;<span class="comment">%提取红色分量 </span></span><br><span class="line"><span class="comment">% figure;imshow(hsvReg1);title('原图hsv检测图像');</span></span><br><span class="line"><span class="comment">%=======  降噪  =======%</span></span><br><span class="line">hsvReg1=bwareaopen(hsvReg1,<span class="number">110</span>);<span class="comment">%110为去除像素点阙值</span></span><br><span class="line"><span class="comment">% figure;imshow(hsvReg1);title('图像降噪结果');</span></span><br><span class="line"><span class="comment">%=======  填充平滑图像  =======%</span></span><br><span class="line">se=strel(<span class="string">'disk'</span>,<span class="number">2</span>);</span><br><span class="line">hsvReg1=imclose(hsvReg1,se);</span><br><span class="line">hsvReg1=imfill(hsvReg1,<span class="string">'holes'</span>);</span><br><span class="line"><span class="comment">% figure;imshow(hsvReg1);title('图像填充平滑后结果');</span></span><br><span class="line"><span class="comment">%=======  划分连通域  =======%</span></span><br><span class="line">[B,L]=bwboundaries(hsvReg1,<span class="string">'noholes'</span>);</span><br><span class="line"><span class="comment">% figure;imshow(label2rgb(L,@jet,[.5 .5 .5]));%5</span></span><br><span class="line"><span class="comment">% hold on;</span></span><br><span class="line"><span class="comment">% for k=1:length(B)</span></span><br><span class="line"><span class="comment">%     boundary=B{k};</span></span><br><span class="line"><span class="comment">%     plot(boundary(:,2),boundary(:,1),'w','LineWidth',2);</span></span><br><span class="line"><span class="comment">% end</span></span><br><span class="line"><span class="comment">%=======  计算连通域特性  =======%</span></span><br><span class="line">cents={};<span class="comment">%圆心</span></span><br><span class="line">rs=[];<span class="comment">%周长</span></span><br><span class="line">stats=regionprops(L,<span class="string">'Area'</span>,<span class="string">'Centroid'</span>,<span class="string">'Perimeter'</span>);</span><br><span class="line"><span class="keyword">for</span> k=<span class="number">1</span>:<span class="built_in">length</span>(B)</span><br><span class="line">    area=stats(k).Area;</span><br><span class="line">    perimeter=stats(k).Perimeter;</span><br><span class="line">    Circularity=<span class="number">4</span>*<span class="built_in">pi</span>*area/perimeter^<span class="number">2</span>;<span class="comment">%计算圆度</span></span><br><span class="line">    <span class="keyword">if</span> Circularity&gt;threshold</span><br><span class="line">        cents{<span class="keyword">end</span>+<span class="number">1</span>}=stats(k).Centroid;</span><br><span class="line">        r=perimeter/(<span class="number">2</span>*<span class="built_in">pi</span>);</span><br><span class="line">        rs(<span class="keyword">end</span>+<span class="number">1</span>)=r;</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="comment">%=======  剪切保存图像  =======%</span></span><br><span class="line"><span class="keyword">for</span> <span class="built_in">i</span>=<span class="number">1</span>:<span class="built_in">length</span>(cents)</span><br><span class="line">    rect=[cents{<span class="built_in">i</span>}(<span class="number">1</span>)-rs(<span class="built_in">i</span>)  cents{<span class="built_in">i</span>}(<span class="number">2</span>)-rs(<span class="built_in">i</span>) <span class="number">2</span>*rs(<span class="built_in">i</span>) <span class="number">2</span>*rs(<span class="built_in">i</span>)];</span><br><span class="line">    result=imcrop(image,rect);</span><br><span class="line">    <span class="built_in">figure</span>;imshow(result);title(<span class="string">'图像裁剪结果'</span>);</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"> </span><br></pre></td></tr></table></figure>
+
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/52922/">https://lostacnet.top/post/52922/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8Ematlab%E7%9A%84%E5%BF%AB%E9%80%9F%E5%AE%9A%E4%BD%8D%E9%99%90%E9%80%9F%E6%A0%87%E5%BF%97%E7%89%8C%E7%AE%97%E6%B3%95"><span class="toc-number">1.</span> <span class="toc-text">基于matlab的快速定位限速标志牌算法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%8C%E9%A2%98%E7%9B%AE%E5%88%86%E6%9E%90"><span class="toc-number">1.1.</span> <span class="toc-text">一，题目分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8C%E5%85%B7%E4%BD%93%E6%AD%A5%E9%AA%A4"><span class="toc-number">1.2.</span> <span class="toc-text">二，具体步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%BE%E7%89%87%E7%9A%84%E8%AF%BB%E5%8F%96%E4%B8%8E%E8%BD%AC%E5%8C%96"><span class="toc-number">1.2.1.</span> <span class="toc-text">图片的读取与转化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%BE%E5%83%8F%E7%9A%84%E9%99%8D%E5%99%AA%E5%A4%84%E7%90%86"><span class="toc-number">1.2.2.</span> <span class="toc-text">图像的降噪处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A1%AB%E5%85%85%E5%B9%B3%E6%BB%91%E5%9B%BE%E5%83%8F"><span class="toc-number">1.2.3.</span> <span class="toc-text">填充平滑图像</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%92%E5%88%86%E8%BF%9E%E9%80%9A%E5%8C%BA%E5%9F%9F"><span class="toc-number">1.2.4.</span> <span class="toc-text">划分连通区域</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E8%BF%9E%E9%80%9A%E5%9F%9F%E7%89%B9%E6%80%A7"><span class="toc-number">1.2.5.</span> <span class="toc-text">计算连通域特性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%90%E5%8F%96%E5%9B%BE%E5%BD%A2%E4%B8%AD%E7%9A%84%E5%9C%86"><span class="toc-number">1.2.6.</span> <span class="toc-text">提取图形中的圆</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A3%81%E5%89%AA%E5%9B%BE%E5%83%8F"><span class="toc-number">1.2.7.</span> <span class="toc-text">裁剪图像</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%8C%E7%BB%93%E8%AE%BA"><span class="toc-number">1.3.</span> <span class="toc-text">三，结论</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%EF%BC%8C%E4%BB%A3%E7%A0%81%E9%99%84%E5%BD%95"><span class="toc-number">1.4.</span> <span class="toc-text">四，代码附录</span></a></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
