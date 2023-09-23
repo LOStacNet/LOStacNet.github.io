@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>使用CLion搭建ESP32-IDF开发环境 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="使用CLion搭建ESP32-IDF开发环境ESP-IDFv4.0后，使用了CMake构建工程，而Clion也是使用CMake进行工程的构建的，理论上是可以使用CLion开发IDF的。为了能够在开发ESP32时使用上喷气机家族非常好用的代码补全系统，这里记录环境配置的过程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用CLion搭建ESP32-IDF开发环境">
+<meta property="og:url" content="https://lostacnet.top/post/91745/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="使用CLion搭建ESP32-IDF开发环境ESP-IDFv4.0后，使用了CMake构建工程，而Clion也是使用CMake进行工程的构建的，理论上是可以使用CLion开发IDF的。为了能够在开发ESP32时使用上喷气机家族非常好用的代码补全系统，这里记录环境配置的过程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://lostacnet.top/%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/image-20230917010951135.png">
+<meta property="og:image" content="https://lostacnet.top/%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/image-20230917011445825.png">
+<meta property="og:image" content="https://lostacnet.top/%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/image-20230917012433335.png">
+<meta property="og:image" content="https://lostacnet.top/%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/image-20230917172248321.png">
+<meta property="og:image" content="https://lostacnet.top/%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/image-20230917172428197.png">
+<meta property="og:image" content="https://lostacnet.top/%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/image-20230917012926514.png">
+<meta property="article:published_time" content="2023-09-16T16:45:23.000Z">
+<meta property="article:modified_time" content="2023-09-22T18:28:57.389Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="ESP-IDF">
+<meta property="article:tag" content="Cmake">
+<meta property="article:tag" content="ESP32">
+<meta property="article:tag" content="Clion">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://lostacnet.top/%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/image-20230917010951135.png">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            使用CLion搭建ESP32-IDF开发环境
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/91745/" class="article-date">
+	  <time datetime="2023-09-16T16:45:23.000Z" itemprop="datePublished">9月 17</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/ESP32%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">ESP32学习笔记</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/Clion/" rel="tag">Clion</a>, <a class="article-tag-none-link" href="/tags/Cmake/" rel="tag">Cmake</a>, <a class="article-tag-none-link" href="/tags/ESP-IDF/" rel="tag">ESP-IDF</a>, <a class="article-tag-none-link" href="/tags/ESP32/" rel="tag">ESP32</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/91745/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 956(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 3(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="使用CLion搭建ESP32-IDF开发环境"><a href="#使用CLion搭建ESP32-IDF开发环境" class="headerlink" title="使用CLion搭建ESP32-IDF开发环境"></a>使用CLion搭建ESP32-IDF开发环境</h1><p>ESP-IDFv4.0后，使用了CMake构建工程，而Clion也是使用CMake进行工程的构建的，理论上是可以使用CLion开发IDF的。为了能够在开发ESP32时使用上喷气机家族非常好用的代码补全系统，这里记录环境配置的过程。</p>
+<span id="more"></span>
+
+<h2 id="前置环境"><a href="#前置环境" class="headerlink" title="前置环境"></a>前置环境</h2><p>搭建前，需要先搭建好以下一些环境：</p>
+<ol>
+<li>完整的ESP-IDF环境，可以进行正常开发。</li>
+<li>可以正常使用的Clion。</li>
+</ol>
+<h2 id="添加工具链"><a href="#添加工具链" class="headerlink" title="添加工具链"></a>添加工具链</h2><p>首先，我们需要将IDF使用工具链加入到CLion，包括虚拟python环境，idf.py，编译器等，这里IDF实际上已经做好了，在安装目录<code>xxx\Espressif</code>下，有一个<code>idf_cmd_init.bat</code>文件，该脚本将所有的工具链都添加了进来，只需要在CLion选择它即可。</p>
+<p>打开CLion设置，在<code>构建、执行、部署-&gt;工具链</code>中点击加号添加新工具链。命名为<code>ESP-IDF</code>，展开添加环境，选择环境文件，在弹窗中选择上面提到的<code>idf_cmd_init.bat</code>文件，点击应用。</p>
+<p><img src="/%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/image-20230917010951135.png" alt="image-20230917010951135"></p>
+<h2 id="更改工程CMake设置"><a href="#更改工程CMake设置" class="headerlink" title="更改工程CMake设置"></a>更改工程CMake设置</h2><p>打开一个IDF工程(可以从IDF的example文件夹中复制)，打开设置，在<code>构建、执行、部署-&gt;CMake</code>中选择配置，将工具链修改为上面创建的<code>ESP-IDF</code>。</p>
+<p><img src="/%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/image-20230917011445825.png" alt="image-20230917011445825"></p>
+<h2 id="添加IDF-PATH环境变量"><a href="#添加IDF-PATH环境变量" class="headerlink" title="添加IDF_PATH环境变量"></a>添加IDF_PATH环境变量</h2><p>在工程的CMakeLists中有这样一段代码:</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span>($ENV{IDF_PATH}/tools/cmake/<span class="keyword">project</span>.cmake)</span><br></pre></td></tr></table></figure>
+
+<p>从环境变量<code>IDF_PATH</code>路径得到IDF的cmake应用文件。</p>
+<p>这个环境变量默认是没有的，因此需要我们进行添加IDF_PATH为安装目录<code>xxx\Espressif</code>的环境变量，这里有三种添加方法，我只使用一种：</p>
+<h3 id="在每个工程中添加局部的环境变量"><a href="#在每个工程中添加局部的环境变量" class="headerlink" title="在每个工程中添加局部的环境变量"></a>在每个工程中添加局部的环境变量</h3><p>这个在上面修改Cmake的地方有一个<code>环境</code>属性可以修改。</p>
+<h3 id="修改工具链的配置文件"><a href="#修改工具链的配置文件" class="headerlink" title="修改工具链的配置文件"></a>修改工具链的配置文件</h3><p>在工具链的配置文件的开头，加上设置环境变量的语句<code>set IDF_PATH=xxx\Espressif</code>。</p>
+<h3 id="修改系统的环境变量"><a href="#修改系统的环境变量" class="headerlink" title="修改系统的环境变量"></a>修改系统的环境变量</h3><p>本次使用的方法，在系统的环境变量中添加一条<code>IDF_PATH</code>。</p>
+<h2 id="添加其他编译参数"><a href="#添加其他编译参数" class="headerlink" title="添加其他编译参数"></a>添加其他编译参数</h2><p>完成上面步骤后，CLion会自动重新加载Cmake，完成后，我们就可以编译了。在右上角选择Cmake应用，按下编译按钮就可以编译。</p>
+<p>但是我们还需要设置一些其他参数。</p>
+<ol>
+<li><p>目标芯片</p>
+<p> 我们使用的ESP32S3芯片，因此我们需要在环境变量中添加<code>IDF_TARGET=esp32s3</code>.添加的位置如图所示：</p>
+<p> <img src="/%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/image-20230917012433335.png" alt="image-20230917012433335"></p>
+</li>
+</ol>
+<h2 id="添加menuconfig运行脚本"><a href="#添加menuconfig运行脚本" class="headerlink" title="添加menuconfig运行脚本"></a>添加menuconfig运行脚本</h2><p>到现在CLion还不能进行menuconfig等设置，这里我们可以使用Clion自带的终端进行操作。</p>
+<p>首先。我们知道CLion默认的终端是powershell终端，在桌面上的idf启动文件实际上就是启动了一个终端，并且运行了IDF安装目录下面的<code>Initialize-Idf.ps1</code>脚本进行环境配置，因此我们只需要运行这个脚本就行。</p>
+<p>在Clion界面点击右上角，点击编辑配置。</p>
+<p><img src="/%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/image-20230917172248321.png" alt="image-20230917172248321"></p>
+<p>在弹出的窗口中，点击添加配置，添加脚本，选择脚本文本。在文本中填写以下内容：</p>
+<p><img src="/%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/image-20230917172428197.png" alt="image-20230917172428197"></p>
+<p>点击确定保存。</p>
+<p>之后可以在配置中选择menucofig运行，即可进行设置。<br>由于不知道为什么方向键用不了，这里使用j,k建上下移动。</p>
+<p>同理，可以用这种方式执行其他idf指令。</p>
+<h2 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h2><h3 id="编译时，提示IDF-TARGET错误"><a href="#编译时，提示IDF-TARGET错误" class="headerlink" title="编译时，提示IDF_TARGET错误"></a>编译时，提示IDF_TARGET错误</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">IDF_TARGET in CMake cache does not match IDF_TARGET environment variable.</span><br><span class="line">To change the target, clear the build directory and sdkconfig file, and</span><br><span class="line">build the project again</span><br></pre></td></tr></table></figure>
+
+<p>这是环境变量中的IDF_TARGET(我们设置的)与工程中已有的Cmake变量(上次编译生成)不一样。</p>
+<p>这时候，我们需要重新加载Cmake,选择<code>重置缓存并重新加载CMake项目</code>即可。</p>
+<p><img src="/%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/image-20230917012926514.png" alt="image-20230917012926514"></p>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/91745/">https://lostacnet.top/post/91745/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8CLion%E6%90%AD%E5%BB%BAESP32-IDF%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="toc-number">1.</span> <span class="toc-text">使用CLion搭建ESP32-IDF开发环境</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E7%8E%AF%E5%A2%83"><span class="toc-number">1.1.</span> <span class="toc-text">前置环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="toc-number">1.2.</span> <span class="toc-text">添加工具链</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%94%B9%E5%B7%A5%E7%A8%8BCMake%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.3.</span> <span class="toc-text">更改工程CMake设置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0IDF-PATH%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.4.</span> <span class="toc-text">添加IDF_PATH环境变量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E6%AF%8F%E4%B8%AA%E5%B7%A5%E7%A8%8B%E4%B8%AD%E6%B7%BB%E5%8A%A0%E5%B1%80%E9%83%A8%E7%9A%84%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.4.1.</span> <span class="toc-text">在每个工程中添加局部的环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E5%B7%A5%E5%85%B7%E9%93%BE%E7%9A%84%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="toc-number">1.4.2.</span> <span class="toc-text">修改工具链的配置文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E7%B3%BB%E7%BB%9F%E7%9A%84%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.4.3.</span> <span class="toc-text">修改系统的环境变量</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E5%85%B6%E4%BB%96%E7%BC%96%E8%AF%91%E5%8F%82%E6%95%B0"><span class="toc-number">1.5.</span> <span class="toc-text">添加其他编译参数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0menuconfig%E8%BF%90%E8%A1%8C%E8%84%9A%E6%9C%AC"><span class="toc-number">1.6.</span> <span class="toc-text">添加menuconfig运行脚本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">1.7.</span> <span class="toc-text">遇到的问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E6%97%B6%EF%BC%8C%E6%8F%90%E7%A4%BAIDF-TARGET%E9%94%99%E8%AF%AF"><span class="toc-number">1.7.1.</span> <span class="toc-text">编译时，提示IDF_TARGET错误</span></a></li></ol></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>

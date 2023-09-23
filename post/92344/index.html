@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>同时搭建Clion与Vscode的Platformio环境 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="同时搭建Clion与Vscode的Platformio环境众所周知，Arduino虽然库很多，但是它的编译速度实在是太慢了。按下编译，拿一杯茶品一下，品完还没编译完。为了同时享受Arduino的库(延长寿命)，同时享受更快的速度，我选择使用PlatformIO。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="同时搭建Clion与Vscode的Platformio环境">
+<meta property="og:url" content="https://lostacnet.top/post/92344/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="同时搭建Clion与Vscode的Platformio环境众所周知，Arduino虽然库很多，但是它的编译速度实在是太慢了。按下编译，拿一杯茶品一下，品完还没编译完。为了同时享受Arduino的库(延长寿命)，同时享受更快的速度，我选择使用PlatformIO。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://z1.ax1x.com/2023/09/23/pPTeQDH.png">
+<meta property="og:image" content="https://z1.ax1x.com/2023/09/23/pPTe8UI.png">
+<meta property="og:image" content="https://z1.ax1x.com/2023/09/23/pPTeG5t.png">
+<meta property="og:image" content="https://z1.ax1x.com/2023/09/23/pPTeYPP.png">
+<meta property="og:image" content="https://z1.ax1x.com/2023/09/23/pPTet8f.png">
+<meta property="og:image" content="https://z1.ax1x.com/2023/09/23/pPTmJeJ.png">
+<meta property="article:published_time" content="2023-09-23T07:44:42.000Z">
+<meta property="article:modified_time" content="2023-09-23T08:50:59.102Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="vscode">
+<meta property="article:tag" content="Clion">
+<meta property="article:tag" content="Arduino">
+<meta property="article:tag" content="PlatformIO">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://z1.ax1x.com/2023/09/23/pPTeQDH.png">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            同时搭建Clion与Vscode的Platformio环境
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/92344/" class="article-date">
+	  <time datetime="2023-09-23T07:44:42.000Z" itemprop="datePublished">9月 23</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/ESP32%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">ESP32学习笔记</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/Arduino/" rel="tag">Arduino</a>, <a class="article-tag-none-link" href="/tags/Clion/" rel="tag">Clion</a>, <a class="article-tag-none-link" href="/tags/PlatformIO/" rel="tag">PlatformIO</a>, <a class="article-tag-none-link" href="/tags/vscode/" rel="tag">vscode</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/92344/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 624(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 2(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="同时搭建Clion与Vscode的Platformio环境"><a href="#同时搭建Clion与Vscode的Platformio环境" class="headerlink" title="同时搭建Clion与Vscode的Platformio环境"></a>同时搭建Clion与Vscode的Platformio环境</h1><p>众所周知，Arduino虽然库很多，但是它的编译速度实在是太慢了。按下编译，拿一杯茶品一下，品完还没编译完。为了同时享受Arduino的库(延长寿命)，同时享受更快的速度，我选择使用PlatformIO。</p>
+<span id="more"></span>
+
+<h2 id="下载PlotformIO"><a href="#下载PlotformIO" class="headerlink" title="下载PlotformIO"></a>下载PlotformIO</h2><p>到官网查看PlatformIO。官网的版本有两个，一个是Core一个是IDE。其中IDE是基于Vscode，并且包含Core。</p>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pPTeQDH"><img src="https://z1.ax1x.com/2023/09/23/pPTeQDH.png" alt="pPTeQDH.png"></a></p>
+<p>Clion要求使用CLI，即Core，但是由于IDE包含，我们只需要安装IDE就行。</p>
+<p>打开Vscode插件市场，搜索PlatformIO，安装。等待一段时间，Vscode会自动安装Core组件。</p>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pPTe8UI"><img src="https://z1.ax1x.com/2023/09/23/pPTe8UI.png" alt="pPTe8UI.png"></a></p>
+<p>安装完成后，重启Vscode，可以在侧栏中找到PIO的标志点开，找到<code>PlatformIO Core CLI</code>，在终端输入<code>pio system info</code>查看信息。</p>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pPTeG5t"><img src="https://z1.ax1x.com/2023/09/23/pPTeG5t.png" alt="pPTeG5t.png"></a></p>
+<ul>
+<li>框中显示的信息是我修改过的，默认应该在C盘。</li>
+</ul>
+<h2 id="重新设置PIO的目录"><a href="#重新设置PIO的目录" class="headerlink" title="重新设置PIO的目录"></a>重新设置PIO的目录</h2><p>PIO CORE的安装目录默认都在C盘，但是我C盘实在是太满了，如果再加上一堆库，就要炸了，因此我需要重新定义一下PIO的位置。</p>
+<ol>
+<li><p>首先在其他盘创建一个文件夹用来存放PIO的文件，这里我创建的是<code>D:\PlatformIO_Core\</code>。</p>
+</li>
+<li><p>然后设置环境变量，中添加上面创建的目录路径，命名为<code>PLATFORMIO_CORE_DIR</code>。</p>
+</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pPTeYPP"><img src="https://z1.ax1x.com/2023/09/23/pPTeYPP.png" alt="pPTeYPP.png"></a></p>
+<ol start="3">
+<li>然后，将上面查到的路径里面的文件复制到我们创建的新目录下，然后删除源文件夹。</li>
+<li>重启Vscode，再次查看目录位置，看是否为新目录。</li>
+</ol>
+<h2 id="将PIO-CORE关联到命令行"><a href="#将PIO-CORE关联到命令行" class="headerlink" title="将PIO CORE关联到命令行"></a><del>将PIO CORE关联到命令行</del></h2><p><strong>不要这么做，这个文件夹中有python，会导致Python无法正常运行</strong></p>
+<p>上面说到了，IDE是自带CORE，可以使用CLI，但是由于CLI程序的环境变量没有设置，因此暂时无法使用。这里我们在环境变量的<code>PATH</code>中添加<code>D:\PlatformIO_Core\penv\Scripts</code>即<code>platformio.exe</code>所在位置。</p>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pPTet8f"><img src="https://z1.ax1x.com/2023/09/23/pPTet8f.png" alt="pPTet8f.png"></a></p>
+<p>完成后打开命令行窗口，输入<code>pio</code>命令查询能否正常运行。</p>
+<h2 id="配置CLION环境"><a href="#配置CLION环境" class="headerlink" title="配置CLION环境"></a>配置CLION环境</h2><p><del>刚刚在上面我们<strong>将IDE的Core关联到了命令行</strong>，那么这时候在CLion中可以直接安装PlatformIO插件就可以使用了，<strong>路径可以留空</strong>(因为已经添加到环境变量中去了)。这里我不再多说，网上有很多。</del></p>
+<p>打开设置，在platformio中输入我们创建的地址:</p>
+<p><img src="https://z1.ax1x.com/2023/09/23/pPTmJeJ.png" alt="image-20230923164522400"></p>
+<p>这里说一下，采用上面设置之后，就可以Vscode和Clion使用同一套工具开发platformio的工程了。</p>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/92344/">https://lostacnet.top/post/92344/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%90%8C%E6%97%B6%E6%90%AD%E5%BB%BAClion%E4%B8%8EVscode%E7%9A%84Platformio%E7%8E%AF%E5%A2%83"><span class="toc-number">1.</span> <span class="toc-text">同时搭建Clion与Vscode的Platformio环境</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BDPlotformIO"><span class="toc-number">1.1.</span> <span class="toc-text">下载PlotformIO</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8D%E6%96%B0%E8%AE%BE%E7%BD%AEPIO%E7%9A%84%E7%9B%AE%E5%BD%95"><span class="toc-number">1.2.</span> <span class="toc-text">重新设置PIO的目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%86PIO-CORE%E5%85%B3%E8%81%94%E5%88%B0%E5%91%BD%E4%BB%A4%E8%A1%8C"><span class="toc-number">1.3.</span> <span class="toc-text">将PIO CORE关联到命令行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AECLION%E7%8E%AF%E5%A2%83"><span class="toc-number">1.4.</span> <span class="toc-text">配置CLION环境</span></a></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
