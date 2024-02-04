@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>CMake学习笔记-常用指令 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="CMake学习笔记-常用指令CMake是使用C语言绕不开的坎，这里记录一下CMake常用的命令以供查阅。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CMake学习笔记-常用指令">
+<meta property="og:url" content="https://lostacnet.top/post/2412/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="CMake学习笔记-常用指令CMake是使用C语言绕不开的坎，这里记录一下CMake常用的命令以供查阅。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-02-04T06:12:29.000Z">
+<meta property="article:modified_time" content="2024-02-04T11:38:24.102Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="CMake">
+<meta property="article:tag" content="c">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            CMake学习笔记-常用指令
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/2412/" class="article-date">
+	  <time datetime="2024-02-04T06:12:29.000Z" itemprop="datePublished">2月 4</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/CMake%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">CMake学习笔记</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/CMake/" rel="tag">CMake</a>, <a class="article-tag-none-link" href="/tags/c/" rel="tag">c</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/2412/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 1.6k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 6(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="CMake学习笔记-常用指令"><a href="#CMake学习笔记-常用指令" class="headerlink" title="CMake学习笔记-常用指令"></a>CMake学习笔记-常用指令</h1><p>CMake是使用C语言绕不开的坎，这里记录一下CMake常用的命令以供查阅。</p>
+<span id="more"></span>
+
+<h2 id="一个最基本的CMakeLists-txt"><a href="#一个最基本的CMakeLists-txt" class="headerlink" title="一个最基本的CMakeLists.txt"></a>一个最基本的CMakeLists.txt</h2><p>工程目录文件:<code>main.cpp</code>,<code>CMakeLists.txt</code></p>
+<p><code>CMakeLists.txt</code>:</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CMakeLists.txt</span></span><br><span class="line"><span class="comment"># 关键字可小写</span></span><br><span class="line"><span class="keyword">PROJECT</span>(HELLO)</span><br><span class="line"><span class="keyword">MESSAGE</span>(STATUS <span class="string">"This is BINARY dir"</span> <span class="variable">${PROJECT_BINART_DIR}</span>)</span><br><span class="line"><span class="keyword">MESSAGE</span>(STATUS <span class="string">"This is SOURCE dir"</span> <span class="variable">${PROJECT_SOURCE_DIR}</span>)</span><br><span class="line"><span class="keyword">ADD_EXECUTABLE</span>(HELLO main.cpp)</span><br></pre></td></tr></table></figure>
+
+<p>使用以下命令编译：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cmake .</span><br><span class="line">cmake --build .</span><br></pre></td></tr></table></figure>
+
+<h2 id="语法基本原则"><a href="#语法基本原则" class="headerlink" title="语法基本原则"></a>语法基本原则</h2><ul>
+<li><p>变量使用${}方式取值，但是在 <strong>IF 控制语句中是直接使用</strong>变量名</p>
+</li>
+<li><p>指令(参数 1 参数 2…) 参数使用括弧括起，参数之间使用<strong>空格或分号</strong>分开。 </p>
+</li>
+<li><p><strong>指令是大小写无关</strong>的，<strong>参数和变量是大小写相关</strong>的。</p>
+</li>
+<li><p>SET(SRC_LIST main.cpp) 可以写成 SET(SRC_LIST “main.cpp”)，如果源<strong>文件名中含有空格</strong>，就必须要<strong>加双引号</strong></p>
+</li>
+</ul>
+<h2 id="内部构建与外部构建"><a href="#内部构建与外部构建" class="headerlink" title="内部构建与外部构建"></a>内部构建与外部构建</h2><p>内部构建就是直接在<code>CMakeLists.txt</code>文件所在目录<code>cmake .</code>。这样生成的临时文件都在根目录，比较乱。</p>
+<p>外部构建。在其他文件夹使用<code>cmake project_dir</code>。其中project_dir是工程路径。这样就不会在工程文件夹下生成临时文件了。</p>
+<p>两个变量：</p>
+<p><code>PROJECT_SOURCE_DIR </code> 工程路径</p>
+<p><code>PROJECT_BINARY_DIR </code>  编译路径，使用cmake的路径。</p>
+<h2 id="编译Debug版本"><a href="#编译Debug版本" class="headerlink" title="编译Debug版本"></a>编译Debug版本</h2><p>默认编译为Release版本。</p>
+<p>编译Debug(可供调试版本)：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmake .. -DCMAKE_BUILD_TYPE=debug</span><br></pre></td></tr></table></figure>
+
+<h2 id="相关环境变量"><a href="#相关环境变量" class="headerlink" title="相关环境变量"></a>相关环境变量</h2><p>可以通过修改环境变量实现生产环境。比如在linux的bash中：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> CMAKE_INCLUDE_PATH=/usr/include/hello</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>CMAKE_INCLUDE_PATH</code>，头文件路径。</li>
+<li><code>CMAKE_LIBRARY_PATH</code>，库文件路径。</li>
+</ul>
+<h2 id="PROJECT——指定工程名和语言"><a href="#PROJECT——指定工程名和语言" class="headerlink" title="PROJECT——指定工程名和语言"></a>PROJECT——指定工程名和语言</h2><p><code>project</code>可以用来指定工程的名字和支持的语言，默认支持所有语言。</p>
+<p><code>PROJECT (HELLO)  </code> 指定了工程的名字，并且支持所有语言—建议</p>
+<p><code>PROJECT (HELLO CXX) </code>     指定了工程的名字，并且支持语言是C++</p>
+<p><code>PROJECT (HELLO C CXX) </code>     指定了工程的名字，并且支持语言是C和C++</p>
+<h2 id="SET——指定变量"><a href="#SET——指定变量" class="headerlink" title="SET——指定变量"></a>SET——指定变量</h2><p>用来显示的指定变量。</p>
+<p> <code>SET(SRC_LIST main.cpp t1.cpp t2.cpp)</code>SRC_LIST就包含了后面三个。</p>
+<h2 id="MESSAGE——输出终端信息"><a href="#MESSAGE——输出终端信息" class="headerlink" title="MESSAGE——输出终端信息"></a>MESSAGE——输出终端信息</h2><p>向终端输出用户信息。主要包括三种：</p>
+<ul>
+<li><code>SEND_ERROR</code>产生错误，生成过程被跳过</li>
+<li><code>STATUS</code>输出信息</li>
+<li><code>FATAL_ERROR</code>立即终止所有cmake过程</li>
+</ul>
+<h2 id="ADD-EXECUTABLE——生成可执行文件"><a href="#ADD-EXECUTABLE——生成可执行文件" class="headerlink" title="ADD_EXECUTABLE——生成可执行文件"></a>ADD_EXECUTABLE——生成可执行文件</h2><p>用来指定生成可执行文件。</p>
+<p><code>ADD_EXECUTABLE(hello ${SRC_LIST}) </code>   生成的可执行文件名是hello，源文件读取变量SRC_LIST中的内容。</p>
+<p>工程名(PROJECT指定)与生成可执行文件hello没有任何关系。</p>
+<h2 id="ADD-SUBDIRECTORY-——指定源文件子目录"><a href="#ADD-SUBDIRECTORY-——指定源文件子目录" class="headerlink" title="ADD_SUBDIRECTORY ——指定源文件子目录"></a>ADD_SUBDIRECTORY ——指定源文件子目录</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ADD_SUBDIRECTORY</span>(source_dir [binary_dir] [EXCLUDE_FROM_ALL])</span><br></pre></td></tr></table></figure>
+
+<p>该指令用来向当前工程添加存放源文件的子目录(source_dir)，并可以指定中间二进制和目标二进制的存放位置(binary_dir)。</p>
+<p><code>EXCLUDE_FROM_ALL</code>函数是将写的目录从编译中排除，如程序中的example。</p>
+<p><strong>使用例子</strong>：</p>
+<p>工程树：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── build</span><br><span class="line">├── CMakeLists.txt</span><br><span class="line">└── src</span><br><span class="line">    ├── CMakeLists.txt</span><br><span class="line">    └── main.cpp</span><br></pre></td></tr></table></figure>
+
+<p>外层CMakeLists.txt</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">PROJECT</span>(HELLO)</span><br><span class="line"><span class="built_in">ADD_SUBDIRECTORY</span>(src bin)</span><br></pre></td></tr></table></figure>
+
+<p>src下的CMakeLists.txt</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ADD_EXECUTABLE</span>(hello main.cpp)</span><br></pre></td></tr></table></figure>
+
+<p>对于ADD_SUBDIRECTORY(src bin)：</p>
+<p>将 src 子目录加入工程并指定编译输出(包含编译中间结果)路径为build/bin 目录。如果不进行 bin 目录的指定，那么编译结果(包括中间结果)都将存放在build/src 目录。</p>
+<p>如果想要将最终编译结果放到外面而不是子文件夹：</p>
+<p>在SRC目录下的CMakeLists.txt(哪里要改变目标存放路径，就在哪里加入上述的定义)中添加：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 编译可执行文件的输出路径--放到了build下</span></span><br><span class="line"><span class="keyword">SET</span>(EXECUTABLE_OUTPUT_PATH <span class="variable">${PROJECT_BINARY_DIR}</span>)</span><br><span class="line"><span class="comment"># 编译库文件的输出路径--放到了build/lib下</span></span><br><span class="line"><span class="keyword">SET</span>(LIBRARY_OUTPUT_PATH <span class="variable">${PROJECT_BINARY_DIR}</span>/lib)</span><br></pre></td></tr></table></figure>
+
+<h2 id="ADD-LIBRARY——构建库"><a href="#ADD-LIBRARY——构建库" class="headerlink" title="ADD_LIBRARY——构建库"></a>ADD_LIBRARY——构建库</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ADD_LIBRARY</span>(hello SHARED <span class="variable">${LIBHELLO_SRC}</span>)</span><br></pre></td></tr></table></figure>
+
+<p>和<code>ADD_EXECUTABLE()</code>一样。</p>
+<ul>
+<li><code>hello</code>：就是正常的库名，生成的名字前面会加上lib，最终产生的文件是libhello.so</li>
+<li><code>SHARED</code>，动态库    <code>STATIC</code>，静态库</li>
+<li><code>${LIBHELLO_SRC}</code> ：源文件</li>
+</ul>
+<h2 id="SET-TARGET-PROPERTIES——设置输出对象的参数"><a href="#SET-TARGET-PROPERTIES——设置输出对象的参数" class="headerlink" title="SET_TARGET_PROPERTIES——设置输出对象的参数"></a>SET_TARGET_PROPERTIES——设置输出对象的参数</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#对hello_static的重名为hello</span></span><br><span class="line"><span class="keyword">SET_TARGET_PROPERTIES</span>(hello_static PROPERTIES  OUTPUT_NAME <span class="string">"hello"</span>)</span><br><span class="line"><span class="comment">#cmake 在构建一个新的target 时，会尝试清理掉其他使用这个名字的库，因为，在构建 libhello.so 时， 就会清理掉 libhello.a，这里设置为不清理</span></span><br><span class="line"><span class="keyword">SET_TARGET_PROPERTIES</span>(hello_static PROPERTIES CLEAN_DIRECT_OUTPUT <span class="number">1</span>)</span><br><span class="line"><span class="comment">#设置版本号，VERSION 指代动态库版本，SOVERSION 指代 API 版本。</span></span><br><span class="line"><span class="keyword">SET_TARGET_PROPERTIES</span>(hello PROPERTIES VERSION <span class="number">1.2</span> SOVERSION <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="INCLUDE-DIRECTORIES——添加头文件路径"><a href="#INCLUDE-DIRECTORIES——添加头文件路径" class="headerlink" title="INCLUDE_DIRECTORIES——添加头文件路径"></a>INCLUDE_DIRECTORIES——添加头文件路径</h2><p>添加头文件路径，首先可以直接在代码中使用绝对路径。</p>
+<p>或者使用关键字添加头文件搜索目录。</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INCLUDE_DIRECTORIES</span>(/usr/<span class="keyword">include</span>/hello)</span><br></pre></td></tr></table></figure>
+
+<p><code>INCLUDE_DIRECTORIES </code>   这条指令可以用来向工程添加多个特定的头文件搜索路径，路径之间用空格分割</p>
+<h2 id="LINK-DIRECTORIES——添加第三方共享库路径"><a href="#LINK-DIRECTORIES——添加第三方共享库路径" class="headerlink" title="LINK_DIRECTORIES——添加第三方共享库路径"></a>LINK_DIRECTORIES——添加第三方共享库路径</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">LINK_DIRECTORIES</span>(/home/myproject/libs)</span><br></pre></td></tr></table></figure>
+
+<p><code>LINK_DIRECTORIES</code>     添加非标准的共享库搜索路径。</p>
+<p>或者直接添加共享库文件。</p>
+<h2 id="TARGET-LINK-LIBRARIES——添加需要链接的共享库"><a href="#TARGET-LINK-LIBRARIES——添加需要链接的共享库" class="headerlink" title="TARGET_LINK_LIBRARIES——添加需要链接的共享库"></a>TARGET_LINK_LIBRARIES——添加需要链接的共享库</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">TARGET_LINK_LIBRARIES</span>(main libhello.a)`</span><br></pre></td></tr></table></figure>
+
+<p><code>TARGET_LINK_LIBRARIES</code>    添加需要链接的共享库。</p>
+<h2 id="INSTALL——安装"><a href="#INSTALL——安装" class="headerlink" title="INSTALL——安装"></a>INSTALL——安装</h2><p>INSTALL可以安装：二进制，动态库，静态库，文件，脚本。</p>
+<p>相关变量<code>CMAKE_INSTALL_PREFIX</code>。</p>
+<h3 id="安装文件"><a href="#安装文件" class="headerlink" title="安装文件"></a>安装文件</h3><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSTALL</span>(FILES file1 file2 DESTINATION path)</span><br></pre></td></tr></table></figure>
+
+<p><code>FILES</code>：文件</p>
+<p><code>DESTINATION</code>：</p>
+<p>1、写绝对路径</p>
+<p>2、可以写相对路径，相对路径实际路径是：<code>${CMAKE_INSTALL_PREFIX}/&lt;DESTINATION 定义的路径&gt;</code></p>
+<p><code>cmake -DCMAKE_INSTALL_PREFIX=/usr</code>    在cmake的时候指定CMAKE_INSTALL_PREFIX变量的路径。</p>
+<h3 id="安装脚本"><a href="#安装脚本" class="headerlink" title="安装脚本"></a>安装脚本</h3><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSTALL</span>(PROGRAMS runhello.sh DESTINATION bin)</span><br></pre></td></tr></table></figure>
+
+<p><code>PROGRAMS</code>：非目标文件的可执行程序安装(比如脚本之类)</p>
+<h3 id="安装文件夹中文件"><a href="#安装文件夹中文件" class="headerlink" title="安装文件夹中文件"></a>安装文件夹中文件</h3><ol>
+<li>在相应文件夹下创建CMakeLists.txt，其中使用INSTALL。</li>
+<li>在工程目录通过<code>DIRECTORY</code>指定。</li>
+</ol>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSTALL</span>(DIRECTORY doc/ DESTINATION share/doc/cmake)</span><br></pre></td></tr></table></figure>
+
+<p><code>DIRECTORY</code> 后面连接的是所在 Source 目录的相对路径</p>
+<p><strong>注意：abc 和 abc/有很大的区别</strong></p>
+<p>目录名不以/结尾：这个目录将被安装为目标路径下的</p>
+<p>目录名以/结尾：将这个目录中的内容安装到目标路径</p>
+<h3 id="安装共享库和头文件"><a href="#安装共享库和头文件" class="headerlink" title="安装共享库和头文件"></a>安装共享库和头文件</h3><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#本例将hello共享库安装到&lt;prefix&gt;/lib下</span></span><br><span class="line"><span class="comment">#hello.h安装到&lt;prefix&gt;/include/hello</span></span><br><span class="line"><span class="comment">#文件放到该目录下</span></span><br><span class="line"><span class="keyword">INSTALL</span>(FILES hello.h DESTINATION <span class="keyword">include</span>/hello)</span><br><span class="line"></span><br><span class="line"><span class="comment">#二进制，静态库，动态库安装都用TARGETS</span></span><br><span class="line"><span class="comment">#ARCHIVE 特指静态库，LIBRARY 特指动态库，RUNTIME 特指可执行目标二进制。</span></span><br><span class="line"><span class="comment">#hello是add_library添加的动态库对象，hello_static是静态</span></span><br><span class="line"><span class="keyword">INSTALL</span>(TARGETS hello hello_static LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1vR4y1u77h/?p=3&share_source=copy_web&vd_source=2d532b2430cece238b84042bf027beab">从零开始详细介绍CMake</a></p>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/2412/">https://lostacnet.top/post/2412/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#CMake%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4"><span class="toc-number">1.</span> <span class="toc-text">CMake学习笔记-常用指令</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E6%9C%80%E5%9F%BA%E6%9C%AC%E7%9A%84CMakeLists-txt"><span class="toc-number">1.1.</span> <span class="toc-text">一个最基本的CMakeLists.txt</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%AD%E6%B3%95%E5%9F%BA%E6%9C%AC%E5%8E%9F%E5%88%99"><span class="toc-number">1.2.</span> <span class="toc-text">语法基本原则</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E9%83%A8%E6%9E%84%E5%BB%BA%E4%B8%8E%E5%A4%96%E9%83%A8%E6%9E%84%E5%BB%BA"><span class="toc-number">1.3.</span> <span class="toc-text">内部构建与外部构建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E8%AF%91Debug%E7%89%88%E6%9C%AC"><span class="toc-number">1.4.</span> <span class="toc-text">编译Debug版本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%B8%E5%85%B3%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.5.</span> <span class="toc-text">相关环境变量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PROJECT%E2%80%94%E2%80%94%E6%8C%87%E5%AE%9A%E5%B7%A5%E7%A8%8B%E5%90%8D%E5%92%8C%E8%AF%AD%E8%A8%80"><span class="toc-number">1.6.</span> <span class="toc-text">PROJECT——指定工程名和语言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SET%E2%80%94%E2%80%94%E6%8C%87%E5%AE%9A%E5%8F%98%E9%87%8F"><span class="toc-number">1.7.</span> <span class="toc-text">SET——指定变量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MESSAGE%E2%80%94%E2%80%94%E8%BE%93%E5%87%BA%E7%BB%88%E7%AB%AF%E4%BF%A1%E6%81%AF"><span class="toc-number">1.8.</span> <span class="toc-text">MESSAGE——输出终端信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ADD-EXECUTABLE%E2%80%94%E2%80%94%E7%94%9F%E6%88%90%E5%8F%AF%E6%89%A7%E8%A1%8C%E6%96%87%E4%BB%B6"><span class="toc-number">1.9.</span> <span class="toc-text">ADD_EXECUTABLE——生成可执行文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ADD-SUBDIRECTORY-%E2%80%94%E2%80%94%E6%8C%87%E5%AE%9A%E6%BA%90%E6%96%87%E4%BB%B6%E5%AD%90%E7%9B%AE%E5%BD%95"><span class="toc-number">1.10.</span> <span class="toc-text">ADD_SUBDIRECTORY ——指定源文件子目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ADD-LIBRARY%E2%80%94%E2%80%94%E6%9E%84%E5%BB%BA%E5%BA%93"><span class="toc-number">1.11.</span> <span class="toc-text">ADD_LIBRARY——构建库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SET-TARGET-PROPERTIES%E2%80%94%E2%80%94%E8%AE%BE%E7%BD%AE%E8%BE%93%E5%87%BA%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%8F%82%E6%95%B0"><span class="toc-number">1.12.</span> <span class="toc-text">SET_TARGET_PROPERTIES——设置输出对象的参数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#INCLUDE-DIRECTORIES%E2%80%94%E2%80%94%E6%B7%BB%E5%8A%A0%E5%A4%B4%E6%96%87%E4%BB%B6%E8%B7%AF%E5%BE%84"><span class="toc-number">1.13.</span> <span class="toc-text">INCLUDE_DIRECTORIES——添加头文件路径</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#LINK-DIRECTORIES%E2%80%94%E2%80%94%E6%B7%BB%E5%8A%A0%E7%AC%AC%E4%B8%89%E6%96%B9%E5%85%B1%E4%BA%AB%E5%BA%93%E8%B7%AF%E5%BE%84"><span class="toc-number">1.14.</span> <span class="toc-text">LINK_DIRECTORIES——添加第三方共享库路径</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TARGET-LINK-LIBRARIES%E2%80%94%E2%80%94%E6%B7%BB%E5%8A%A0%E9%9C%80%E8%A6%81%E9%93%BE%E6%8E%A5%E7%9A%84%E5%85%B1%E4%BA%AB%E5%BA%93"><span class="toc-number">1.15.</span> <span class="toc-text">TARGET_LINK_LIBRARIES——添加需要链接的共享库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#INSTALL%E2%80%94%E2%80%94%E5%AE%89%E8%A3%85"><span class="toc-number">1.16.</span> <span class="toc-text">INSTALL——安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E6%96%87%E4%BB%B6"><span class="toc-number">1.16.1.</span> <span class="toc-text">安装文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%AC"><span class="toc-number">1.16.2.</span> <span class="toc-text">安装脚本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E6%96%87%E4%BB%B6%E5%A4%B9%E4%B8%AD%E6%96%87%E4%BB%B6"><span class="toc-number">1.16.3.</span> <span class="toc-text">安装文件夹中文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E5%85%B1%E4%BA%AB%E5%BA%93%E5%92%8C%E5%A4%B4%E6%96%87%E4%BB%B6"><span class="toc-number">1.16.4.</span> <span class="toc-text">安装共享库和头文件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">1.17.</span> <span class="toc-text">参考</span></a></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
