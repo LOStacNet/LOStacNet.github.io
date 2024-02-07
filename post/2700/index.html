@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>树莓派Pico学习笔记-Win下Clion环境搭建 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="树莓派Pico学习笔记-Win下Clion环境搭建最近掏出了吃灰已久的合宙RP2040，打算先搭建好环境，借助它学习一下win下交叉编译与调试环境的搭建，以及CMake与Clion的使用。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="树莓派Pico学习笔记-Win下Clion环境搭建">
+<meta property="og:url" content="https://lostacnet.top/post/2700/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="树莓派Pico学习笔记-Win下Clion环境搭建最近掏出了吃灰已久的合宙RP2040，打算先搭建好环境，借助它学习一下win下交叉编译与调试环境的搭建，以及CMake与Clion的使用。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://lostacnet.top/%E6%A0%91%E8%8E%93%E6%B4%BEPico%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Win%E4%B8%8BClion%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240207171248032.png">
+<meta property="article:published_time" content="2024-02-07T08:00:10.000Z">
+<meta property="article:modified_time" content="2024-02-07T13:14:19.755Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="CMake">
+<meta property="article:tag" content="c">
+<meta property="article:tag" content="Clion">
+<meta property="article:tag" content="rp2040">
+<meta property="article:tag" content="OpenOCD">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://lostacnet.top/%E6%A0%91%E8%8E%93%E6%B4%BEPico%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Win%E4%B8%8BClion%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240207171248032.png">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            树莓派Pico学习笔记-Win下Clion环境搭建
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/2700/" class="article-date">
+	  <time datetime="2024-02-07T08:00:10.000Z" itemprop="datePublished">2月 7</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E6%A0%91%E8%8E%93%E6%B4%BEPico%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">树莓派Pico学习笔记</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/CMake/" rel="tag">CMake</a>, <a class="article-tag-none-link" href="/tags/Clion/" rel="tag">Clion</a>, <a class="article-tag-none-link" href="/tags/OpenOCD/" rel="tag">OpenOCD</a>, <a class="article-tag-none-link" href="/tags/c/" rel="tag">c</a>, <a class="article-tag-none-link" href="/tags/rp2040/" rel="tag">rp2040</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/2700/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 931(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 3(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="树莓派Pico学习笔记-Win下Clion环境搭建"><a href="#树莓派Pico学习笔记-Win下Clion环境搭建" class="headerlink" title="树莓派Pico学习笔记-Win下Clion环境搭建"></a>树莓派Pico学习笔记-Win下Clion环境搭建</h1><p>最近掏出了吃灰已久的合宙RP2040，打算先搭建好环境，借助它学习一下win下交叉编译与调试环境的搭建，以及CMake与Clion的使用。</p>
+<span id="more"></span>
+
+<h2 id="下载安装"><a href="#下载安装" class="headerlink" title="下载安装"></a>下载安装</h2><p>首先完成以下软件的安装：</p>
+<ul>
+<li>Clion</li>
+<li>CMake——C语言生成器(Clion自带)</li>
+<li>ninja——C语言构建器(同make，nmake功能)(Clion自带)</li>
+<li>git——主要用于从github下载代码</li>
+<li><a target="_blank" rel="noopener" href="https://developer.arm.com/Tools%20and%20Software/GNU%20Toolchain">arm-gcc工具链</a>——编译代码</li>
+<li>mingw——win上的gcc，用来编译elf2uf2工具(Clion自带)</li>
+<li><a target="_blank" rel="noopener" href="https://openocd.org/">OpenOCD</a>——调试工具</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/raspberrypi/pico-sdk">Pico-SDK</a></li>
+</ul>
+<p>注意<strong>添加到环境变量</strong>。</p>
+<h2 id="基于Clion"><a href="#基于Clion" class="headerlink" title="基于Clion"></a>基于Clion</h2><h3 id="创建工程目录"><a href="#创建工程目录" class="headerlink" title="创建工程目录"></a>创建工程目录</h3><p>将SDK/external目录下的<code>pico_sdk_import.cmake</code>复制到工程目录。</p>
+<p>添加程序代码文件<code>main.c</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Copyright (c) 2020 Raspberry Pi (Trading) Ltd.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * SPDX-License-Identifier: BSD-3-Clause</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"pico/stdlib.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> {</span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> PICO_DEFAULT_LED_PIN</span></span><br><span class="line"><span class="meta">#<span class="keyword">warning</span> blink example requires a board with a regular LED</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">    <span class="type">const</span> uint LED_PIN = PICO_DEFAULT_LED_PIN;</span><br><span class="line">    gpio_init(LED_PIN);</span><br><span class="line">    gpio_set_dir(LED_PIN, GPIO_OUT);</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) {</span><br><span class="line">        gpio_put(LED_PIN, <span class="number">1</span>);</span><br><span class="line">        sleep_ms(<span class="number">250</span>);</span><br><span class="line">        gpio_put(LED_PIN, <span class="number">0</span>);</span><br><span class="line">        sleep_ms(<span class="number">250</span>);</span><br><span class="line">    }</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<p>添加<code>CMakeLists.txt</code>:</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">cmake_minimum_required</span>(VERSION <span class="number">3.13</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># initialize the SDK directly</span></span><br><span class="line"><span class="keyword">include</span>(pico_sdk_import.cmake)</span><br><span class="line"><span class="keyword">project</span>(picotest)</span><br><span class="line"></span><br><span class="line"><span class="comment"># initialize the Raspberry Pi Pico SDK</span></span><br><span class="line">pico_sdk_init()</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_executable</span>(blink main.c)</span><br><span class="line"></span><br><span class="line"><span class="comment"># pull in common dependencies</span></span><br><span class="line"><span class="keyword">target_link_libraries</span>(blink pico_stdlib)</span><br><span class="line"></span><br><span class="line"><span class="comment"># create map/bin/hex/uf2 file etc.</span></span><br><span class="line">pico_add_extra_outputs(blink)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="添加工具链"><a href="#添加工具链" class="headerlink" title="添加工具链"></a>添加工具链</h3><p>这里基本与STM32环境的搭建过程一样。</p>
+<p>在Clion的设置中<code>构建、部署、执行-&gt;工具链</code>添加新工具链<code>ARM-GCC</code>。</p>
+<p>CMake自带，构建工具使用自带的Ninja。选择编译器和调试器为上面安装的ARM工具链中的。</p>
+<p><del>其实无所谓，树莓派Pico的SDK已经指定好了，只需要将编译器添加到环境变量就可以直接用了，搞的我还以为mingw可以交叉编译了</del></p>
+<p>之后点击<code>CMake</code>，选择<code>工具链</code>为刚刚创建的<code>ARM-GCC</code>，在下面的<code>环境</code>中添加<code>PICO_SDK_PATH</code>环境变量。</p>
+<h3 id="编译下载调试"><a href="#编译下载调试" class="headerlink" title="编译下载调试"></a>编译下载调试</h3><p>编译后在build中就会有uf2文件可以直接下载，或者使用调试器下载调试。</p>
+<p>配置调试也与stm32相似，只需要注意一下配置文件的写法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#pico.cfg</span><br><span class="line">source [find interface/picoprobe.cfg]</span><br><span class="line"></span><br><span class="line">source [find target/rp2040.cfg]</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="基于命令行的搭建——接触底层"><a href="#基于命令行的搭建——接触底层" class="headerlink" title="基于命令行的搭建——接触底层"></a>基于命令行的搭建——接触底层</h2><h3 id="添加环境变量"><a href="#添加环境变量" class="headerlink" title="添加环境变量"></a>添加环境变量</h3><p><img src="/%E6%A0%91%E8%8E%93%E6%B4%BEPico%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Win%E4%B8%8BClion%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240207171248032.png" alt="image-20240207171248032"></p>
+<p>将PicoSDK目录添加到环境变量<code>PICO_SDK_PATH</code>。</p>
+<p>或者在使用CMake命令时使用<code>-DPICO_SDK_PATH=</code>参数传递。</p>
+<p>或者在txt中使用SET设置。</p>
+<h3 id="创建工程文件夹"><a href="#创建工程文件夹" class="headerlink" title="创建工程文件夹"></a>创建工程文件夹</h3><p>将SDK/external目录下的<code>pico_sdk_import.cmake</code>复制到工程目录。</p>
+<p>添加程序代码文件<code>main.c</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Copyright (c) 2020 Raspberry Pi (Trading) Ltd.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * SPDX-License-Identifier: BSD-3-Clause</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"pico/stdlib.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> {</span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> PICO_DEFAULT_LED_PIN</span></span><br><span class="line"><span class="meta">#<span class="keyword">warning</span> blink example requires a board with a regular LED</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">    <span class="type">const</span> uint LED_PIN = PICO_DEFAULT_LED_PIN;</span><br><span class="line">    gpio_init(LED_PIN);</span><br><span class="line">    gpio_set_dir(LED_PIN, GPIO_OUT);</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) {</span><br><span class="line">        gpio_put(LED_PIN, <span class="number">1</span>);</span><br><span class="line">        sleep_ms(<span class="number">250</span>);</span><br><span class="line">        gpio_put(LED_PIN, <span class="number">0</span>);</span><br><span class="line">        sleep_ms(<span class="number">250</span>);</span><br><span class="line">    }</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<p>添加<code>CMakeLists.txt</code>:</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">cmake_minimum_required</span>(VERSION <span class="number">3.13</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># initialize the SDK directly</span></span><br><span class="line"><span class="keyword">include</span>(pico_sdk_import.cmake)</span><br><span class="line"><span class="comment">#这句对交叉编译很重要，跳过编译器检查</span></span><br><span class="line"><span class="keyword">set</span>(CMAKE_TRY_COMPILE_TARGET_TYPE <span class="string">"STATIC_LIBRARY"</span>)</span><br><span class="line"><span class="keyword">project</span>(picotest)</span><br><span class="line"></span><br><span class="line"><span class="comment"># initialize the Raspberry Pi Pico SDK</span></span><br><span class="line">pico_sdk_init()</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_executable</span>(blink main.c)</span><br><span class="line"></span><br><span class="line"><span class="comment"># pull in common dependencies</span></span><br><span class="line"><span class="keyword">target_link_libraries</span>(blink pico_stdlib)</span><br><span class="line"></span><br><span class="line"><span class="comment"># create map/bin/hex/uf2 file etc.</span></span><br><span class="line">pico_add_extra_outputs(blink)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="构建编译工程"><a href="#构建编译工程" class="headerlink" title="构建编译工程"></a>构建编译工程</h3><p>创建<code>build</code>文件夹，进入，在该文件夹下执行命令：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmake .. -G Ninja</span><br></pre></td></tr></table></figure>
+
+<p><code>-G Ninja</code>是为了生成Ninja使用的文件。否则，在Windos下，会优先使用VS的<code>nmake</code>。这里没有装vs，会提示<code>nmake</code>找不到。</p>
+<p>当然也可以使用mingw自带的<code>msys2</code>，修改-G的参数即可。</p>
+<p>也可以在这里传入PICO_SDK_PATH。</p>
+<p>构建完成后，执行命令:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmake --build .</span><br></pre></td></tr></table></figure>
+
+<p>这里需要注意安装一个c语言编译器，因为这里会编译elf2uf2工具。</p>
+<p>之后就可以在目录下看见uf2文件了。</p>
+<h3 id="下载elf文件并调试"><a href="#下载elf文件并调试" class="headerlink" title="下载elf文件并调试"></a>下载elf文件并调试</h3><p>详见参考文章。</p>
+<p>这里注意，openocd的配置文件已经在其目录下了，可以自行查看支持种类。</p>
+<p>使用GDB远程调试功能连接到OpenOCD进行调试。</p>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/k_jlsai/article/details/128684338">使用 DAPLink 调试烧录树莓派 Pico</a>hexo</p>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/2700/">https://lostacnet.top/post/2700/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%91%E8%8E%93%E6%B4%BEPico%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Win%E4%B8%8BClion%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-number">1.</span> <span class="toc-text">树莓派Pico学习笔记-Win下Clion环境搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BD%E5%AE%89%E8%A3%85"><span class="toc-number">1.1.</span> <span class="toc-text">下载安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8EClion"><span class="toc-number">1.2.</span> <span class="toc-text">基于Clion</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E5%B7%A5%E7%A8%8B%E7%9B%AE%E5%BD%95"><span class="toc-number">1.2.1.</span> <span class="toc-text">创建工程目录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="toc-number">1.2.2.</span> <span class="toc-text">添加工具链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E4%B8%8B%E8%BD%BD%E8%B0%83%E8%AF%95"><span class="toc-number">1.2.3.</span> <span class="toc-text">编译下载调试</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%9A%84%E6%90%AD%E5%BB%BA%E2%80%94%E2%80%94%E6%8E%A5%E8%A7%A6%E5%BA%95%E5%B1%82"><span class="toc-number">1.3.</span> <span class="toc-text">基于命令行的搭建——接触底层</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.3.1.</span> <span class="toc-text">添加环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E5%B7%A5%E7%A8%8B%E6%96%87%E4%BB%B6%E5%A4%B9"><span class="toc-number">1.3.2.</span> <span class="toc-text">创建工程文件夹</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9E%84%E5%BB%BA%E7%BC%96%E8%AF%91%E5%B7%A5%E7%A8%8B"><span class="toc-number">1.3.3.</span> <span class="toc-text">构建编译工程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BDelf%E6%96%87%E4%BB%B6%E5%B9%B6%E8%B0%83%E8%AF%95"><span class="toc-number">1.3.4.</span> <span class="toc-text">下载elf文件并调试</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="toc-number">1.4.</span> <span class="toc-text">参考文章</span></a></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
