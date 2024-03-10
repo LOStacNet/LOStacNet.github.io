@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>深入理解RISC-V-CH32V307的堆栈内存分配 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="深入理解CH32V307的堆栈内存分配在学习CH32V307的过程中，我发现其DVP例程中的图像缓冲区是直接用了SRAM中的一片内存地址，由于好奇直接使用这片地址为什么不会产生问题，故研究。最后学习了CH32V307堆栈的分配方式，以及修改堆栈空间大小的方法，学会大大扩展SRAM空间以及栈空间，防止爆栈。 一，芯片介绍官网在此CH32V307  不得不说这个片子给我带来了很多惊喜，让我学到了很多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解RISC-V-CH32V307的堆栈内存分配">
+<meta property="og:url" content="https://lostacnet.top/post/7931/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="深入理解CH32V307的堆栈内存分配在学习CH32V307的过程中，我发现其DVP例程中的图像缓冲区是直接用了SRAM中的一片内存地址，由于好奇直接使用这片地址为什么不会产生问题，故研究。最后学习了CH32V307堆栈的分配方式，以及修改堆栈空间大小的方法，学会大大扩展SRAM空间以及栈空间，防止爆栈。 一，芯片介绍官网在此CH32V307  不得不说这个片子给我带来了很多惊喜，让我学到了很多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s1.ax1x.com/2023/07/09/pC2EbcR.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/07/09/pC2Eqj1.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/07/09/pC2EOnx.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/07/09/pC2EXB6.png">
+<meta property="og:image" content="https://s1.ax1x.com/2023/07/09/pC2EjHK.png">
+<meta property="article:published_time" content="2023-07-09T08:31:15.000Z">
+<meta property="article:modified_time" content="2024-03-10T08:17:10.189Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="堆栈">
+<meta property="article:tag" content="CH32V307">
+<meta property="article:tag" content="ld链接文件">
+<meta property="article:tag" content="内存分区">
+<meta property="article:tag" content="malloc">
+<meta property="article:tag" content="RISC-V">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s1.ax1x.com/2023/07/09/pC2EbcR.png">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            深入理解RISC-V-CH32V307的堆栈内存分配
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/7931/" class="article-date">
+	  <time datetime="2023-07-09T08:31:15.000Z" itemprop="datePublished">7月 9</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/CH32V307%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">CH32V307学习笔记</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/CH32V307/" rel="tag">CH32V307</a>, <a class="article-tag-none-link" href="/tags/RISC-V/" rel="tag">RISC-V</a>, <a class="article-tag-none-link" href="/tags/ld%E9%93%BE%E6%8E%A5%E6%96%87%E4%BB%B6/" rel="tag">ld链接文件</a>, <a class="article-tag-none-link" href="/tags/malloc/" rel="tag">malloc</a>, <a class="article-tag-none-link" href="/tags/%E5%86%85%E5%AD%98%E5%88%86%E5%8C%BA/" rel="tag">内存分区</a>, <a class="article-tag-none-link" href="/tags/%E5%A0%86%E6%A0%88/" rel="tag">堆栈</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/7931/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 2.2k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 8(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="深入理解CH32V307的堆栈内存分配"><a href="#深入理解CH32V307的堆栈内存分配" class="headerlink" title="深入理解CH32V307的堆栈内存分配"></a>深入理解CH32V307的堆栈内存分配</h1><p>在学习CH32V307的过程中，我发现其DVP例程中的图像缓冲区是直接用了SRAM中的一片内存地址，由于好奇直接使用这片地址为什么不会产生问题，故研究。最后学习了CH32V307堆栈的分配方式，以及修改堆栈空间大小的方法，学会大大扩展SRAM空间以及栈空间，防止爆栈。</p>
+<h2 id="一，芯片介绍"><a href="#一，芯片介绍" class="headerlink" title="一，芯片介绍"></a>一，芯片介绍</h2><p>官网在此<a target="_blank" rel="noopener" href="https://www.wch.cn/products/CH32V307.html">CH32V307</a></p>
+<blockquote>
+<p>不得不说这个片子给我带来了很多惊喜，让我学到了很多</p>
+</blockquote>
+<p><img src="https://s1.ax1x.com/2023/07/09/pC2EbcR.png" alt="image-20230709165615927"></p>
+<p>我们看一下这个框图，主要关注一下FLASH与SRAM。</p>
+<p>这里写的是<strong>256KB FLASH+64KB SRAM</strong> ，但实际上可以是<strong>（192K FLASH+128K SRAM）、（224K FLASH+96K  SRAM）、（256K FLASH+64K SRAM）、（288K FLASH+32K SRAM）</strong>等<strong>和为320KB</strong>几种组合中的一种<a href="%E8%AF%A6%E8%A7%81%5BCH32V307DSO.PDF%5D(https://www.wch.cn/downloads/CH32V307DS0_PDF.html)%E7%AC%AC4%E9%A1%B5%E5%92%8C%5BCH32V2x_V3xRM.PDF%5D(https://www.wch.cn/downloads/CH32FV2x_V3xRM_PDF.html)%E7%AC%AC494%E9%A1%B5%E3%80%82">^1</a>。</p>
+<p><em>最大128KB，妈妈再也不用担心我内存不够用了</em></p>
+<p>至于为什么是320KB，<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/471879350">这篇文章</a>中说：</p>
+<blockquote>
+<p>其实赤菟V307内部有一块320 KB SRAM，分为A、B两块，A、B块的大小由用户选择字的user的SRAM_CODE_MODE 位决定，A块负责存放用户代码，B块留作单片机真正的SRAM，每次上电运行时，内部自动从Code Flash中加载A块大小的用户代码运行。</p>
+</blockquote>
+<p>至于这段话在官方哪里说的，我没有找到。但结合用户手册中FLASH分为0等待和1等待区的描述，我认为这是正确的。(代码在SRAM中运行当然是0等待区)</p>
+<h2 id="二，配置方法"><a href="#二，配置方法" class="headerlink" title="二，配置方法"></a>二，配置方法</h2><p>通过MounRiver Studio(MRS)创建的工程默认是<strong>288K FLASH+32K SRAM</strong>的配置，将配置更改成其他有两种方式。</p>
+<h3 id="使用WCHLink下载器直接更改"><a href="#使用WCHLink下载器直接更改" class="headerlink" title="使用WCHLink下载器直接更改"></a>使用WCHLink下载器直接更改</h3><p>在MRS中的下载配置，或者WCHISP Studio中可以选择内存分配方式(ROM+RAM)。</p>
+<p><img src="https://s1.ax1x.com/2023/07/09/pC2Eqj1.png" alt="image-20230709172231090"></p>
+<p><img src="https://s1.ax1x.com/2023/07/09/pC2EOnx.png" alt="image-20230709172514319"></p>
+<p>改好后下次下载时就可以改变内存分配。</p>
+<h3 id="使用代码修改"><a href="#使用代码修改" class="headerlink" title="使用代码修改"></a>使用代码修改</h3><p>内存的分配方式在FLASH用户选择字寄存器中可以设置。</p>
+<p><img src="https://s1.ax1x.com/2023/07/09/pC2EXB6.png" alt="image-20230709172659522"></p>
+<p>使用以下代码可以进行设置(来源于<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/471879350">这篇文章</a>)：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span></span></span><br><span class="line"><span class="class">{</span></span><br><span class="line">    FlASH_192_SRAM_128 = <span class="number">0</span>,</span><br><span class="line">    FLASH_224_SRAM_96,</span><br><span class="line">    FLASH_256_SRAM_64,</span><br><span class="line">    FLASH_288_RAM_32</span><br><span class="line">} FLASH_SRAM_DEFIN;</span><br><span class="line"></span><br><span class="line"><span class="comment">//note: this operation will take effect after reset</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">Config_Flash_SRAM</span><span class="params">(FLASH_SRAM_DEFIN SetFlashSRAM)</span></span><br><span class="line">{</span><br><span class="line">    <span class="type">uint8_t</span> UserByte = FLASH_GetUserOptionByte() &amp; <span class="number">0xff</span>; <span class="comment">//get user option byte</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span>(SetFlashSRAM)</span><br><span class="line">    {</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">        UserByte &amp;= ~(<span class="number">0xc0</span>); <span class="comment">// SRAM_CODE_MODE = 00</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">        UserByte &amp;= ~(<span class="number">0xc0</span>); <span class="comment">// SRAM_CODE_MODE = 00</span></span><br><span class="line">        UserByte |= <span class="number">0x7f</span>;    <span class="comment">// SRAM_CODE_MODE = 01</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">        UserByte &amp;= ~(<span class="number">0xc0</span>); <span class="comment">// SRAM_CODE_MODE = 00</span></span><br><span class="line">        UserByte |= <span class="number">0xbf</span>;    <span class="comment">// SRAM_CODE_MODE = 10</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">        UserByte |= <span class="number">0xff</span>;    <span class="comment">// SRAM_CODE_MODE = 11</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    FLASH_Unlock();</span><br><span class="line">    FLASH_ProgramOptionByteData(<span class="number">0x1ffff802</span>, UserByte);</span><br><span class="line">    FLASH_Lock();</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">/*********************************************************************</span></span><br><span class="line"><span class="comment"> * @fn      main</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @brief   Main program.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @return  none</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line">    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);</span><br><span class="line">    Delay_Init();</span><br><span class="line">    USART_Printf_Init(<span class="number">115200</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"SystemClk:%d\r\n"</span>, SystemCoreClock);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    Config_Flash_SRAM(FLASH_288_RAM_32); <span class="comment">//配置Flash为244 KB，SRAM为96KB ，复位后生效</span></span><br><span class="line">    </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"userByte = %02x \r\n"</span>,FLASH_GetUserOptionByte() &amp; <span class="number">0xff</span>);  </span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)</span><br><span class="line">    {</span><br><span class="line">        ;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<h3 id="修改LD文件"><a href="#修改LD文件" class="headerlink" title="修改LD文件"></a>修改LD文件</h3><p>更改了设置后，还需要修改<code>Link.ld</code>文件来重设程序的地址分配。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">MEMORY</span><br><span class="line">{</span><br><span class="line">/* CH32V30x_D8C - CH32V305RB-CH32V305FB</span><br><span class="line">   CH32V30x_D8 - CH32V303CB-CH32V303RB</span><br><span class="line">*/</span><br><span class="line">/*</span><br><span class="line">	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 128K</span><br><span class="line">	RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 32K</span><br><span class="line">*/</span><br><span class="line">    </span><br><span class="line">/* CH32V30x_D8C - CH32V307VC-CH32V307WC-CH32V307RC</span><br><span class="line">   CH32V30x_D8 - CH32V303VC-CH32V303RC</span><br><span class="line">   FLASH + RAM supports the following configuration</span><br><span class="line">   FLASH-192K + RAM-128K</span><br><span class="line">   FLASH-224K + RAM-96K</span><br><span class="line">   FLASH-256K + RAM-64K  </span><br><span class="line">   FLASH-288K + RAM-32K  </span><br><span class="line">*/</span><br><span class="line">/* 在这里修改成设置的大小 */</span><br><span class="line">	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 288K</span><br><span class="line">	RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 32K</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="修改栈大小"><a href="#修改栈大小" class="headerlink" title="修改栈大小"></a>修改栈大小</h3><p>同样的，在LD文件中可以修改栈大小,在LD文件的开头</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ENTRY( _start )</span><br><span class="line"></span><br><span class="line">__stack_size = 2048;</span><br><span class="line"></span><br><span class="line">PROVIDE( _stack_size = __stack_size );</span><br></pre></td></tr></table></figure>
+
+<p>其中修改<code>__stack_size = 2048;</code>就是栈大小，可以自行设置，但要注意不要设太大超过了占了其他数据区(这个下面讲)。</p>
+<p>设置栈大小后，<strong>除开必要数据区，剩下了就全是堆区</strong>了，默认分配情况下你有19K左右的堆，也就是用malloc函数分配的区域，<strong>非常的浪费</strong>。</p>
+<ul>
+<li>这个<code>Link.ld</code>文件就是这次的重头系，规划了储存器空间的分配。</li>
+</ul>
+<blockquote>
+<p>通常，程序编译的最后一步就是<strong>链接</strong>，此过程根据<strong>“*.ld”</strong>链接文件将多个目标文件**(.o)<strong>和库文件</strong>(.a)<strong>输入文件链接成一个可执行输出文件</strong>(.elf)<strong>。涉及到对</strong>空间和地址的分配<strong>以及</strong>符号解析与重定位**。</p>
+<p>而ld链接脚本控制这整个链接过程，主要用于规定各输入文件中的程序、数据等内容段在输出文件中的空间和地址如何分配。通俗的讲，链接脚本用于描述输入文件中的段，将其映射到输出文件中，并指定输出文件中的内存分配。</p>
+<p>-<a target="_blank" rel="noopener" href="https://www.cnblogs.com/wahahahehehe/p/15149960.html">ld链接脚本说明</a></p>
+</blockquote>
+<p>关于CH32V307连接脚本的说明，可以参考这两篇文章，写的很好很详细。</p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/wahahahehehe/p/15149960.html">RISC-V MCU CH32V307/CH32V203/CH32V003等 ld链接脚本说明</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/wahahahehehe/p/15164437.html">RISC-V MCU堆栈机制</a></p>
+<p>本文大部分参考于这两篇文章。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h2 id="三，内存空间分配方式"><a href="#三，内存空间分配方式" class="headerlink" title="三，内存空间分配方式"></a>三，内存空间分配方式</h2><p>在深入理解上面步骤是如何改变堆栈大小之前，我们需要先理解一下内存的分配方式。</p>
+<p>通常，一个内存空间会被分为以下区域:</p>
+<p><img src="https://s1.ax1x.com/2023/07/09/pC2EjHK.png" alt="image-20230709175229509"></p>
+<ul>
+<li><code>Text</code>:<strong>储存用户代码</strong>，为只读区，程序从FLASH读出后在此运行(这个片子中就是上面的A区)。</li>
+<li><code>data</code>:<strong>储存已初始化的全局变量</strong>，这里data的起始地址怎么配置都是0x20000000。</li>
+<li><code>bss</code>:<strong>储存未初始化的全局变量</strong>。</li>
+<li><code>heap</code>:堆区，malloc函数分配的动态区域。</li>
+<li><code>stack</code>:栈区，调用函数的传参空间。</li>
+</ul>
+<p>在CH32V307中，text大小由设置配置，<strong>而bss与data则是由编译器编译后决定大小</strong>。最后剩下的区域就是堆栈区，栈区可以由用户配置大小。</p>
+<p>在本芯片中，data端的起始地址就是设置的RAM的起始地址<code>0x20000000</code>,bss端的结束地址根据不同的用户程序决定，<strong>该地址后到RAM地址的结束都是堆栈区域，其中heap区从bss结束地址开始，向高地址增长，stac从RAM结束开始，向低地址增长。</strong></p>
+<ul>
+<li>当栈与堆重合，就爆栈了，会出现各种奇怪的东西。</li>
+</ul>
+<h2 id="四，连接脚本中对栈的设置"><a href="#四，连接脚本中对栈的设置" class="headerlink" title="四，连接脚本中对栈的设置"></a>四，连接脚本中对栈的设置</h2><p>在连接脚本的开头和结尾有关于栈的配置：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">ENTRY( _start )</span><br><span class="line"></span><br><span class="line">__stack_size = 2048;</span><br><span class="line"></span><br><span class="line">PROVIDE( _stack_size = __stack_size );</span><br><span class="line"></span><br><span class="line">.........</span><br><span class="line">...</span><br><span class="line">/*bss分配空间的代码*/</span><br><span class="line">...</span><br><span class="line">	PROVIDE( _end = _ebss);</span><br><span class="line">	PROVIDE( end = . );</span><br><span class="line"></span><br><span class="line">    .stack ORIGIN(RAM) + LENGTH(RAM) - __stack_size :</span><br><span class="line">    {</span><br><span class="line">        PROVIDE( _heap_end = . );    </span><br><span class="line">        . = ALIGN(4);</span><br><span class="line">        PROVIDE(_susrstack = . );</span><br><span class="line">        . = . + __stack_size;</span><br><span class="line">        PROVIDE( _eusrstack = .);</span><br><span class="line">    } &gt;RAM </span><br></pre></td></tr></table></figure>
+
+<p>这里解释几个符号：</p>
+<ul>
+<li><code>.</code>:表示当前地址，随着分配区域递增，也可以进行运算改变</li>
+<li><code>PROVIDE()</code>:定义全局变量</li>
+<li><code>.stack</code>:栈区分配设置</li>
+</ul>
+<p>代码解读：</p>
+<p>首先，<code>PROVIDE( end = . );</code>将当前地址（bss结束）赋给了<code>end</code>变量，这里就是heap的起始地址。</p>
+<p>之后，<code>.stack ORIGIN(RAM) + LENGTH(RAM) - __stack_size :</code>将栈顶的地址给出，就是栈最大可以生长到的地址：RAM结束地址减去栈的大小。</p>
+<p><code>PROVIDE( _heap_end = . ); </code>栈顶的地址同时也是堆结束的地址，这样堆的大小就确定了是：bss结束到栈顶。</p>
+<p><code>PROVIDE(_susrstack = . );</code>栈顶地址。</p>
+<p><code>PROVIDE( _eusrstack = .);</code>栈底地址，在上面的运算中其实就是<code>ORIGIN(RAM) + LENGTH(RAM)</code>。</p>
+<p>至此，我们就明白了堆栈是怎么分配了，<strong>只需要修改<code>__stack_size</code>就可以设置栈大小了，默认RAM中除去data、bss、stack等剩余的都为heap空间</strong>。</p>
+<p>通过访问<code>end</code>,<code>_heap_end</code>可以获得heap 的大小与地址。通过访问<code>_susrstack</code>,<code>_eusrstack</code>可以获得栈的大小和地址。</p>
+<h2 id="五，测试"><a href="#五，测试" class="headerlink" title="五，测试"></a>五，测试</h2><p>编写ld文件，修改成以下配置:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">__stack_size = 20K;</span><br><span class="line"></span><br><span class="line">.....</span><br><span class="line">MEMORY</span><br><span class="line">{</span><br><span class="line">	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 192K</span><br><span class="line">	RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 128K</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<p>在main函数中编写;</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="type">uint32_t</span> _end;<span class="comment">//堆起始地址</span></span><br><span class="line"><span class="keyword">extern</span> <span class="type">uint32_t</span> _eusrstack; <span class="comment">/* 声明外部变量 _eusrstack */</span></span><br><span class="line"><span class="keyword">extern</span> <span class="type">uint32_t</span> _susrstack; <span class="comment">/* 声明外部变量 _susrstack */</span></span><br><span class="line">	</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"heap start address = 0x%08x\r\n"</span>,&amp;_end);<span class="comment">//打印堆起始地址</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"stac start address = 0x%08x\r\n"</span>,&amp;_eusrstack);<span class="comment">//打印栈底地址</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"stac end address = 0x%08x\r\n"</span>,&amp;_susrstack);<span class="comment">//打印栈顶地址</span></span><br></pre></td></tr></table></figure>
+
+<p>获得以下输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">heap start address = 0x20002858</span><br><span class="line">stac start address = 0x20020000</span><br><span class="line">stac end address = 0x2001b000</span><br></pre></td></tr></table></figure>
+
+<p>将栈地址相减即使栈的大小，将堆地址与栈顶相减即可得到堆区大小。</p>
+<h2 id="六，疑问解释"><a href="#六，疑问解释" class="headerlink" title="六，疑问解释"></a>六，疑问解释</h2><p>知道上面这些知识后，再反过来看开头的问题，就可以解释了。</p>
+<p>首先是DVP缓冲区的地址:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">UINT32  JPEG_DVPDMAaddr0 = <span class="number">0x20005000</span>;</span><br><span class="line">UINT32  JPEG_DVPDMAaddr1 = <span class="number">0x20005000</span> + OV2640_JPEG_WIDTH;</span><br></pre></td></tr></table></figure>
+
+<p>根据地址范围，我们发现，这就是在<strong>heap区随便来了一块区域，这样的话如果使用malloc的话就会导致问题</strong>。</p>
+<p><del>什么sb配置完全不考虑例程在其他地方跑是吧</del></p>
+<p>第二个疑惑就是为什么要在<code>debug.c</code>中重定义<code>_sbrk</code>.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*********************************************************************</span></span><br><span class="line"><span class="comment"> * @fn      _sbrk</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @brief   Change the spatial position of data segment.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @return  size: Data length</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">__attribute__((used)) <span class="type">void</span> *_sbrk(<span class="type">ptrdiff_t</span> incr)</span><br><span class="line">{</span><br><span class="line">    <span class="keyword">extern</span> <span class="type">char</span> _end[];</span><br><span class="line">    <span class="keyword">extern</span> <span class="type">char</span> _heap_end[];</span><br><span class="line">    <span class="type">static</span> <span class="type">char</span> *curbrk = _end;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((curbrk + incr &lt; _end) || (curbrk + incr &gt; _heap_end))</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span> - <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    curbrk += incr;</span><br><span class="line">    <span class="keyword">return</span> curbrk - incr;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>heap只有起始地址，没有结束地址约束，这样最终会导致malloc永远都不会返回NULL</p>
+</blockquote>
+<p>而定义<code>_sbrk</code>后，使用<code>_heap_end</code>变量就可以判断是否出现空间不足。</p>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/7931/">https://lostacnet.top/post/7931/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3CH32V307%E7%9A%84%E5%A0%86%E6%A0%88%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D"><span class="toc-number">1.</span> <span class="toc-text">深入理解CH32V307的堆栈内存分配</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%8C%E8%8A%AF%E7%89%87%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">一，芯片介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8C%E9%85%8D%E7%BD%AE%E6%96%B9%E6%B3%95"><span class="toc-number">1.2.</span> <span class="toc-text">二，配置方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8WCHLink%E4%B8%8B%E8%BD%BD%E5%99%A8%E7%9B%B4%E6%8E%A5%E6%9B%B4%E6%94%B9"><span class="toc-number">1.2.1.</span> <span class="toc-text">使用WCHLink下载器直接更改</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E4%BB%A3%E7%A0%81%E4%BF%AE%E6%94%B9"><span class="toc-number">1.2.2.</span> <span class="toc-text">使用代码修改</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9LD%E6%96%87%E4%BB%B6"><span class="toc-number">1.2.3.</span> <span class="toc-text">修改LD文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E6%A0%88%E5%A4%A7%E5%B0%8F"><span class="toc-number">1.2.4.</span> <span class="toc-text">修改栈大小</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%8C%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%88%86%E9%85%8D%E6%96%B9%E5%BC%8F"><span class="toc-number">1.3.</span> <span class="toc-text">三，内存空间分配方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%EF%BC%8C%E8%BF%9E%E6%8E%A5%E8%84%9A%E6%9C%AC%E4%B8%AD%E5%AF%B9%E6%A0%88%E7%9A%84%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.4.</span> <span class="toc-text">四，连接脚本中对栈的设置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%EF%BC%8C%E6%B5%8B%E8%AF%95"><span class="toc-number">1.5.</span> <span class="toc-text">五，测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%EF%BC%8C%E7%96%91%E9%97%AE%E8%A7%A3%E9%87%8A"><span class="toc-number">1.6.</span> <span class="toc-text">六，疑问解释</span></a></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
