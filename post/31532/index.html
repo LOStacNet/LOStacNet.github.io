@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>ZYNQ学习笔记-Petalinux的使用 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="ZYNQ学习笔记-Petalinux的使用Petalinux可以简化ZYNQ-7000的Linux开发，这里记录一下基本使用流程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ZYNQ学习笔记-Petalinux的使用">
+<meta property="og:url" content="https://lostacnet.top/post/31532/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="ZYNQ学习笔记-Petalinux的使用Petalinux可以简化ZYNQ-7000的Linux开发，这里记录一下基本使用流程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315224807284.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315225137330.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315225436429.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315225801357.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315231253042.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315233104690.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315233423687.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316000231659.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316000904828.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316002627246.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316003727615.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316004116822.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316005612799.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240318203717643.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316170509589.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316172748146.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316173139337.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316173228563.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316173341251.png">
+<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316173551810.png">
+<meta property="article:published_time" content="2024-03-15T13:32:07.000Z">
+<meta property="article:modified_time" content="2024-04-02T13:03:31.622Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="ZYNQ">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315224807284.png">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            ZYNQ学习笔记-Petalinux的使用
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/31532/" class="article-date">
+	  <time datetime="2024-03-15T13:32:07.000Z" itemprop="datePublished">3月 15</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">ZYNQ学习笔记</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/Linux/" rel="tag">Linux</a>, <a class="article-tag-none-link" href="/tags/ZYNQ/" rel="tag">ZYNQ</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/31532/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 2.5k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 9(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="ZYNQ学习笔记-Petalinux的使用"><a href="#ZYNQ学习笔记-Petalinux的使用" class="headerlink" title="ZYNQ学习笔记-Petalinux的使用"></a>ZYNQ学习笔记-Petalinux的使用</h1><p>Petalinux可以简化ZYNQ-7000的Linux开发，这里记录一下基本使用流程。</p>
+<span id="more"></span>
+
+<h2 id="设计流程"><a href="#设计流程" class="headerlink" title="设计流程"></a>设计流程</h2><p>Petalinux设计流程一般如下：</p>
+<ol>
+<li>创建硬件。使用vivado创建工程，设定硬件，导出hdf文件。</li>
+<li>创建Petalinux工程。</li>
+<li>导入硬件。导入vivado生成的hdf。</li>
+<li>设置工程。</li>
+<li>设置内核。</li>
+<li>设置根文件系统。</li>
+<li>配置设备树。</li>
+<li>编译工程。</li>
+<li>打包制作BIN文件。</li>
+</ol>
+<h2 id="创建硬件工程"><a href="#创建硬件工程" class="headerlink" title="创建硬件工程"></a>创建硬件工程</h2><p>这里需要使用vivado生成硬件工程。</p>
+<p>这边偷懒一下，使用了小梅哥的BX71开发板给的出厂工程。其BlockDesign如图所示：</p>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315224807284.png" alt="image-20240315224807284"></p>
+<p>可以看见它HDMI输出了一个色条。并且使用了PL端的ENET，并且为了适配板上的物理层芯片使用加了一个转换模块。</p>
+<p>处理器的设置如下，开启了QSPI，UART1(与板子上的转换芯片相连)，ENET0，USB0，SD0，GPIO。</p>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315225137330.png" alt="image-20240315225137330"></p>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315225436429.png" alt="image-20240315225436429"></p>
+<p>ENET使用了EMIO(PL)端，并使用了MDIO(配置信号线)。</p>
+<p>这里导出硬件信息，注意包含bit流。最后在工程目录下的sdk目录中得到hdf文件。</p>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315225801357.png" alt="image-20240315225801357"></p>
+<p>在linux中创建petalinux工程文件夹，在该文件夹下创建hdf文件夹，将hdf文件夹整个拷贝到hdf下。</p>
+<h2 id="创建Petalinux工程"><a href="#创建Petalinux工程" class="headerlink" title="创建Petalinux工程"></a>创建Petalinux工程</h2><p>使用petalinux工程前，先使用source命令运行安装目录下的<code>setting.sh</code>文件，添加环境变量。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source petalinux2018.3/settings.sh</span><br></pre></td></tr></table></figure>
+
+<p>切换到之前的工程目录，在终端输入以下命令创建工程：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">petalinux-create -t project --template zynq -n mylinux</span><br></pre></td></tr></table></figure>
+
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315231253042.png" alt="image-20240315231253042"></p>
+<ul>
+<li><code>-t project</code>:表明这是一个linux工程，而不是linux应用之类。</li>
+<li><code>-n mylinux</code>:指定工程名为mylinux。</li>
+<li><code>--template zynq</code>:设定这是一个ZYNQ的工程。</li>
+</ul>
+<h2 id="配置Petalinux工程"><a href="#配置Petalinux工程" class="headerlink" title="配置Petalinux工程"></a>配置Petalinux工程</h2><p>第一次配置时，需要将hdf文件导入到工程中，petalinux解析完成后会弹出配置界面。进入刚刚创建的mylinux工程，输入以下命令导入。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"> petalinux-config --get-hw-description &lt;hdf 文件</span><br><span class="line">目录&gt;</span><br></pre></td></tr></table></figure>
+
+<p>导入成功后会自动弹出配置窗口：</p>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315233104690.png" alt="image-20240315233104690"></p>
+<p>这里对各个选项进行简单的说明。</p>
+<ul>
+<li>Linux Components Selection</li>
+</ul>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240315233423687.png" alt="image-20240315233423687"></p>
+<p>星号表示已经使能。<code>First Stage Bootloader</code>是自动生成fsbl.elf文件。第二个是自动更新ps_init,即fsbl中的第一个函数。自动配置会让程序跟着hdf文件更新。下面两个是配置u-boot和linux内核的来源，一般默认就行。</p>
+<ul>
+<li>Auto Config Setting</li>
+</ul>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316000231659.png" alt="image-20240316000231659"></p>
+<p>自动配置各种组件(根据hdf文件)。</p>
+<ul>
+<li>Subsystem AUTO Hardware Settings</li>
+</ul>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316000904828.png" alt="image-20240316000904828"></p>
+<p>配置一些硬件设置。</p>
+<p>第一个为系统处理器设置，程序跑在哪个核。</p>
+<p>第二个用来配置内存大小以及程序基地址等等，根据hdf文件自动生成。</p>
+<p>第三个选择使用哪个串口进行标志输入输出以及波特率，这里只开了一个串口。</p>
+<p>第四个为网络设置，包括使用主网口，MAC地址设置和是否自动IP地址获取(DHCP)。</p>
+<p>第五个设置FLASH(QSPI)，设置FLASH的分区，用于从FLASH启动LInux时。</p>
+<p>第六个设置默认的SD卡设备。</p>
+<p>第七个设置RTC时钟，这里没开启。</p>
+<p>最后为镜像设置。设置各种镜像存储在那个存储介质，包括boot(fsbl,bitstream,uboot,dtb(可选))、u-boot环境变量、jffs2文件系统(用来存配置信息)、dtb来源(设备树)。</p>
+<ul>
+<li>DTG Settings</li>
+</ul>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316002627246.png" alt="image-20240316002627246"></p>
+<p>MACHINE_NAME设置开发板的名字，用来对应开发板设备树(国外总是喜欢以开发板为配置单位)默认即可。</p>
+<p>Kernel Bootargs设置，设置内核启动变量。</p>
+<p>Devicetree flags 设备树相关</p>
+<p>Devicetree overlay 设备树相关</p>
+<p>Remove PL 设备树不自动包含PL端的设备。</p>
+<ul>
+<li>u-boot Configuration</li>
+</ul>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316003727615.png" alt="image-20240316003727615"></p>
+<p>配置uboot相关的设置。</p>
+<p>第一个不知道。</p>
+<p>第二个设置了uboot的配置文件。</p>
+<p>第三个设置netboot，网络启动相关。</p>
+<p>第四个设置TFTP服务器ip地址，网络下载镜像时使用。</p>
+<ul>
+<li>Image Packaging Configuration</li>
+</ul>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316004116822.png" alt="image-20240316004116822"></p>
+<p>第一个设置根文件系统的类型。默认是放在RAM中(内存模拟文件系统—根目录在内存中)，和内核镜像打包在一起。也可以放在SD_card。</p>
+<p>关于<a target="_blank" rel="noopener" href="https://huaweicloud.csdn.net/6356178ed3efff3090b59d10.html?spm=1001.2101.3001.6661.1&utm_medium=distribute.pc_relevant_t0.none-task-blog-2~default~OPENSEARCH~activity-1-126041951-blog-128799728.pc_relevant_vip_default&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-2~default~OPENSEARCH~activity-1-126041951-blog-128799728.pc_relevant_vip_default&utm_relevant_index=1">INITRAMFS</a></p>
+<blockquote>
+<p>INITRAMFS 类型的根文件系统每次重新启动 linux 系统都是全新的、 未改动过的，也就是说启动系统后进行的所有修改掉电后就全部丢失了， 再次重新启动还是之前未修改过的根文件系统，选择 SD card 可以将根文件系统放在 SD 卡的 ext4 分区，这样启动系统后进行的所有修改掉电后就不会丢失了。   ——引用自正点原子</p>
+</blockquote>
+<p>第二个设置了内核镜像名字。</p>
+<p>第三个设备树相关。</p>
+<p>第四个设置是否将镜像自动拷贝到tftp服务器目录中，这里没有搭建，设置为不使能。</p>
+<p>第五个设置tftp服务器目录所在。</p>
+<ul>
+<li>Firmware Version Configuration</li>
+</ul>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316005612799.png" alt="image-20240316005612799"></p>
+<p>配置版本名，可自定义。</p>
+<ul>
+<li>Yocto Settings</li>
+</ul>
+<p>底层的设置。Petalinux底层就是Yocto。</p>
+<p>配置完成后进行保存<code>Save</code>，程序会自动进行配置。</p>
+<h2 id="配置配置内核"><a href="#配置配置内核" class="headerlink" title="配置配置内核"></a>配置配置内核</h2><p>终端输入如下命令配置内核:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">petalinux-config -c kernel</span><br></pre></td></tr></table></figure>
+
+<p>这里由于使用了<strong>GMII 2 RGMII</strong>IP核，需要添加相应的驱动。</p>
+<p><code>Device Driver-&gt;Network device support-&gt;PHY Device support and infrastructure</code>中使能<code>xilinx GMII2RGMII converter driver</code> 。</p>
+<h2 id="配置Uboot"><a href="#配置Uboot" class="headerlink" title="配置Uboot"></a>配置Uboot</h2><ul>
+<li>注意：由于petalinux2018的bug，如果将设备树放在sd卡，最后会生成booti(64位下的)命令，导致无法启动linux，这里需要将<code>project-spec/meta-plnx-generated/recipes-bsp/u-boot/configs/platform-auto.h</code>中的</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">default_bootcmd=run uenvboot; run cp_kernel2ram &amp;&amp; run cp_dtb2ram &amp;&amp; booti ${netstart} - ${dtbnetstart}</span><br></pre></td></tr></table></figure>
+
+<p>将上面的booti改成bootm.</p>
+<h2 id="配置根文件系统"><a href="#配置根文件系统" class="headerlink" title="配置根文件系统"></a>配置根文件系统</h2><p>终端输入如下命令配置内核:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">petalinux-config -c rootfs</span><br></pre></td></tr></table></figure>
+
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240318203717643.png" alt="image-20240318203717643"></p>
+<ul>
+<li>Filesystem Packages</li>
+</ul>
+<p>配置常用的工具软件，包括内核调试软件、流媒体软件、 Python 软件以及图形界面软件等 。</p>
+<ul>
+<li>Petalinux Package Groups</li>
+</ul>
+<p>选择Petalinux提供的软件包，比如包含opencv的相关软件包依赖。</p>
+<ul>
+<li>Image Features</li>
+</ul>
+<p>配置根文件系统的某些功能，如是否支持 ssh，使用 dropbear<br>的 ssh 还是 openssh 等。如果不希望每次启动 linux 后都得输入密码验证，可以使能该菜单下的“ debug-tweaks”选项。   </p>
+<ul>
+<li>apps</li>
+</ul>
+<p>构建用户应用。</p>
+<ul>
+<li>user packages</li>
+</ul>
+<p>配置自定义软件包。</p>
+<ul>
+<li>petalinux rootfs settings</li>
+</ul>
+<p>主要用来设置root的密码。</p>
+<p>最后可以编译出各种rootfs文件，可以将 rootfs.tar.gz 或者 rootfs.tar.bz2文件解压到 SD 卡的第二个分区——ext4 文件系统分区来测试根文件系统  。</p>
+<h2 id="配置设备树"><a href="#配置设备树" class="headerlink" title="配置设备树"></a>配置设备树</h2><p>如果需要配置设备树，可以编辑当前 petalinux 工程目录下的 project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi 文件。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="编译Petalinux工程"><a href="#编译Petalinux工程" class="headerlink" title="编译Petalinux工程"></a>编译Petalinux工程</h2><p>配置全部完成后，使用命令编译。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">petalinux-build</span><br></pre></td></tr></table></figure>
+
+<h2 id="制作镜像"><a href="#制作镜像" class="headerlink" title="制作镜像"></a>制作镜像</h2><p>编译完成后，petalinux生成了一系列文件，此时需要将这些分散的文件部署整合成易于部署的镜像。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">petalinux-package --boot --fsbl --fpga --u-boot --force</span><br></pre></td></tr></table></figure>
+
+<p>–boot说明生成镜像</p>
+<p>–fsbl指定镜像中的fsbl文件位置</p>
+<p>–fpga指定bit流文件</p>
+<p>–u-boot指定uboot即用户代码位置</p>
+<p>–force强制覆盖已生成的文件</p>
+<p>文件都默认在<code>images/linux</code>下，不指定就会使用默认路径。</p>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316170509589.png" alt="image-20240316170509589"></p>
+<p>BOOT.BIN就是启动镜像，image.ub是linux镜像。</p>
+<h2 id="制作SD启动卡"><a href="#制作SD启动卡" class="headerlink" title="制作SD启动卡"></a>制作SD启动卡</h2><p>使用SD卡引导linux启动，一般需要两个分区。一个是FAT32文件系统，用来放置启动镜像(BOOT.BIN,linux镜像)，另外一个是EXT4分区，用于存放根文件系统。由于本篇设置的是INITRAMFS，没有用到SD卡的文件系统，因此只需要FAT32分区。</p>
+<p>将读卡器插入到电脑上，连接到虚拟机，查看其符号，我这里是<code>/dev/sdb</code>。</p>
+<p>如果使用图形界面。插入后会自动挂载，先取消挂载，然后进行分区。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">umount /dev/sdb*</span><br><span class="line">sudo fdisk /dev/sdb</span><br></pre></td></tr></table></figure>
+
+<p>在fdisk界面输入p:</p>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316172748146.png" alt="image-20240316172748146"></p>
+<p>可以看到有一个FAT32分区<code>/dev/sdb1</code>。这里输入d将该分区删除。</p>
+<p>接着输入n新建分区，输入p为主分区，使用默认分区号1和2048第一个扇区，设置第一个分区大小为100M。</p>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316173139337.png" alt="image-20240316173139337"></p>
+<p>之后先后输入t，c，将分区设为W95 FAT32(代号为c)。</p>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316173228563.png" alt="image-20240316173228563"></p>
+<p>之后输入a设置为引导分区。</p>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316173341251.png" alt="image-20240316173341251"></p>
+<p>此时FAT分区创建完毕，之后创建ext分区。</p>
+<p>输入n，之后全部默认，将剩余的空间全部分走。</p>
+<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8/image-20240316173551810.png" alt="image-20240316173551810"></p>
+<p>之后输入w保存，退出。</p>
+<p>之后在分区创建文件系统：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo mkfs.vfat -F 32 -n boot /dev/sdb1</span><br><span class="line">sudo mkfs.ext4 -L rootfs /dev/sdb2</span><br></pre></td></tr></table></figure>
+
+<p>如果使用图形界面，此时可以看到自动挂载了两个U盘。如果没有图形界面，还需手动挂载sdb1和sdb2。之后将BOOT.BIN和image.ub拷贝到boot下就可以了。</p>
+<h2 id="SD启动"><a href="#SD启动" class="headerlink" title="SD启动"></a>SD启动</h2><p>之后将SD插入到卡槽，利用串口终端即可登录。默认账户和密码为root。</p>
+<h2 id="FLASH启动"><a href="#FLASH启动" class="headerlink" title="FLASH启动"></a>FLASH启动</h2><p>当Linux文件系统不是太大时，可以直接将其放在FLASH中。其实就是将BOOT.BIN放在FLASH里面，在config中设置boot的路径后将最后生成的文件通过SDK的program flash烧录到QSPI FLASH即可。</p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><h3 id="编译时报错提示没有“phy1”"><a href="#编译时报错提示没有“phy1”" class="headerlink" title="编译时报错提示没有“phy1”"></a>编译时报错提示没有“phy1”</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">system-top.dtb: ERROR (phandle_references): /amba/ethernet@e000b000: Reference to non-existent node or label "phy1"</span><br><span class="line"></span><br><span class="line">system-top.dtb: ERROR (phandle_references): /amba/ethernet@e000b000/mdio/gmii_to_rgmii_0@31: Reference to non-existent node or label "phy1"</span><br></pre></td></tr></table></figure>
+
+<p>这是由于在配置中使能了MDIO(配置端口)，引用了一个外部的物理层芯片却没有为其添加设备树导致的，外部芯片无法自动添加到设备树中。这里需要手动添加：<br>打开文件：<code>project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi   </code>在这个文件中添加自定义的设备树。</p>
+<p>在文件最后添加:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&amp;gem0{</span><br><span class="line">phy1:phy@1 {</span><br><span class="line">        device_type = "ethernet-phy";</span><br><span class="line">        reg = &lt;0x5&gt;;</span><br><span class="line">};</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+
+<p>&amp;gem0表示重写gem0，在其中添加一个phy1。</p>
+<p>这本质还是当前版本的petalinux不能正确的读取hdf生成设备树，请<strong>使用与vivado相同版本的petalinux</strong>。</p>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/31532/">https://lostacnet.top/post/31532/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">1.</span> <span class="toc-text">ZYNQ学习笔记-Petalinux的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E6%B5%81%E7%A8%8B"><span class="toc-number">1.1.</span> <span class="toc-text">设计流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E7%A1%AC%E4%BB%B6%E5%B7%A5%E7%A8%8B"><span class="toc-number">1.2.</span> <span class="toc-text">创建硬件工程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BAPetalinux%E5%B7%A5%E7%A8%8B"><span class="toc-number">1.3.</span> <span class="toc-text">创建Petalinux工程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AEPetalinux%E5%B7%A5%E7%A8%8B"><span class="toc-number">1.4.</span> <span class="toc-text">配置Petalinux工程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E9%85%8D%E7%BD%AE%E5%86%85%E6%A0%B8"><span class="toc-number">1.5.</span> <span class="toc-text">配置配置内核</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AEUboot"><span class="toc-number">1.6.</span> <span class="toc-text">配置Uboot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E6%A0%B9%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.7.</span> <span class="toc-text">配置根文件系统</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E8%AE%BE%E5%A4%87%E6%A0%91"><span class="toc-number">1.8.</span> <span class="toc-text">配置设备树</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E8%AF%91Petalinux%E5%B7%A5%E7%A8%8B"><span class="toc-number">1.9.</span> <span class="toc-text">编译Petalinux工程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%B6%E4%BD%9C%E9%95%9C%E5%83%8F"><span class="toc-number">1.10.</span> <span class="toc-text">制作镜像</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%B6%E4%BD%9CSD%E5%90%AF%E5%8A%A8%E5%8D%A1"><span class="toc-number">1.11.</span> <span class="toc-text">制作SD启动卡</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SD%E5%90%AF%E5%8A%A8"><span class="toc-number">1.12.</span> <span class="toc-text">SD启动</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#FLASH%E5%90%AF%E5%8A%A8"><span class="toc-number">1.13.</span> <span class="toc-text">FLASH启动</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98"><span class="toc-number">1.14.</span> <span class="toc-text">问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E6%97%B6%E6%8A%A5%E9%94%99%E6%8F%90%E7%A4%BA%E6%B2%A1%E6%9C%89%E2%80%9Cphy1%E2%80%9D"><span class="toc-number">1.14.1.</span> <span class="toc-text">编译时报错提示没有“phy1”</span></a></li></ol></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>

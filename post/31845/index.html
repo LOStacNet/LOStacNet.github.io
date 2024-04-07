@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>ZYNQ学习笔记-字符设备驱动开发 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="ZYNQ学习笔记-字符设备驱动开发字符设备是 Linux 驱动中最基本的一类设备驱动，字符设备就是一个一个字节，按照字节流进行读写操作的设备，读写数据是分先后顺序的。比如我们最常见的 LED、按键、 IIC、 SPI，LCD 等等都是字符设备，这些设备的驱动就叫做字符设备驱动。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ZYNQ学习笔记-字符设备驱动开发">
+<meta property="og:url" content="https://lostacnet.top/post/31845/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="ZYNQ学习笔记-字符设备驱动开发字符设备是 Linux 驱动中最基本的一类设备驱动，字符设备就是一个一个字节，按照字节流进行读写操作的设备，读写数据是分先后顺序的。比如我们最常见的 LED、按键、 IIC、 SPI，LCD 等等都是字符设备，这些设备的驱动就叫做字符设备驱动。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-03-18T12:45:36.000Z">
+<meta property="article:modified_time" content="2024-04-07T07:54:48.994Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="ZYNQ">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            ZYNQ学习笔记-字符设备驱动开发
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/31845/" class="article-date">
+	  <time datetime="2024-03-18T12:45:36.000Z" itemprop="datePublished">3月 18</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">ZYNQ学习笔记</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/Linux/" rel="tag">Linux</a>, <a class="article-tag-none-link" href="/tags/ZYNQ/" rel="tag">ZYNQ</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/31845/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 8.1k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 34(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="ZYNQ学习笔记-字符设备驱动开发"><a href="#ZYNQ学习笔记-字符设备驱动开发" class="headerlink" title="ZYNQ学习笔记-字符设备驱动开发"></a>ZYNQ学习笔记-字符设备驱动开发</h1><p>字符设备是 Linux 驱动中最基本的一类设备驱动，字符设备就是一个一个字节，按照字节流进行读写操作的设备，读写数据是分先后顺序的。比如我们最常见的 LED、按键、 IIC、 SPI，LCD 等等都是字符设备，这些设备的驱动就叫做字符设备驱动。  </p>
+<span id="more"></span>
+
+<h2 id="描述驱动操作的数据结构"><a href="#描述驱动操作的数据结构" class="headerlink" title="描述驱动操作的数据结构"></a>描述驱动操作的数据结构</h2><p>在<code>include/linux/fs.h  </code>中定义了一个结构体，集合了内核驱动操作函数集合。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> {</span></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">module</span> *<span class="title">owner</span>;</span></span><br><span class="line"> <span class="type">loff_t</span> (*llseek) (<span class="keyword">struct</span> file *, <span class="type">loff_t</span>, <span class="type">int</span>);</span><br><span class="line"> <span class="type">ssize_t</span> (*read) (<span class="keyword">struct</span> file *, <span class="type">char</span> __user *, <span class="type">size_t</span>, <span class="type">loff_t</span> *);</span><br><span class="line"> <span class="type">ssize_t</span> (*write) (<span class="keyword">struct</span> file *, <span class="type">const</span> <span class="type">char</span> __user *, <span class="type">size_t</span>, <span class="type">loff_t</span> *);</span><br><span class="line"> <span class="type">ssize_t</span> (*read_iter) (<span class="keyword">struct</span> kiocb *, <span class="keyword">struct</span> iov_iter *);</span><br><span class="line"> <span class="type">ssize_t</span> (*write_iter) (<span class="keyword">struct</span> kiocb *, <span class="keyword">struct</span> iov_iter *);</span><br><span class="line"> <span class="type">int</span> (*iterate) (<span class="keyword">struct</span> file *, <span class="keyword">struct</span> dir_context *);</span><br><span class="line"> <span class="type">int</span> (*iterate_shared) (<span class="keyword">struct</span> file *, <span class="keyword">struct</span> dir_context *);</span><br><span class="line"> <span class="type">unsigned</span> <span class="title function_">int</span> <span class="params">(*poll)</span> <span class="params">(<span class="keyword">struct</span> file *, <span class="keyword">struct</span> poll_table_struct *)</span>;</span><br><span class="line"> <span class="type">long</span> (*unlocked_ioctl) (<span class="keyword">struct</span> file *, <span class="type">unsigned</span> <span class="type">int</span>, <span class="type">unsigned</span> <span class="type">long</span>);</span><br><span class="line"> <span class="type">long</span> (*compat_ioctl) (<span class="keyword">struct</span> file *, <span class="type">unsigned</span> <span class="type">int</span>, <span class="type">unsigned</span> <span class="type">long</span>);</span><br><span class="line"> <span class="type">int</span> (*mmap) (<span class="keyword">struct</span> file *, <span class="keyword">struct</span> vm_area_struct *);</span><br><span class="line"> <span class="type">int</span> (*open) (<span class="keyword">struct</span> inode *, <span class="keyword">struct</span> file *);</span><br><span class="line"> <span class="type">int</span> (*flush) (<span class="keyword">struct</span> file *, <span class="type">fl_owner_t</span> id);</span><br><span class="line"> <span class="type">int</span> (*release) (<span class="keyword">struct</span> inode *, <span class="keyword">struct</span> file *);</span><br><span class="line"> <span class="type">int</span> (*fsync) (<span class="keyword">struct</span> file *, <span class="type">loff_t</span>, <span class="type">loff_t</span>, <span class="type">int</span> datasync);</span><br><span class="line"> <span class="type">int</span> (*fasync) (<span class="type">int</span>, <span class="keyword">struct</span> file *, <span class="type">int</span>);</span><br><span class="line"> <span class="type">int</span> (*lock) (<span class="keyword">struct</span> file *, <span class="type">int</span>, <span class="keyword">struct</span> file_lock *);</span><br><span class="line"> <span class="type">ssize_t</span> (*sendpage) (<span class="keyword">struct</span> file *, <span class="keyword">struct</span> page *, <span class="type">int</span>, <span class="type">size_t</span>, <span class="type">loff_t</span> *, <span class="type">int</span>);</span><br><span class="line"> <span class="type">unsigned</span> <span class="title function_">long</span> <span class="params">(*get_unmapped_area)</span><span class="params">(<span class="keyword">struct</span> file *, <span class="type">unsigned</span> <span class="type">long</span>, <span class="type">unsigned</span> <span class="type">long</span>, <span class="type">unsigned</span> <span class="type">long</span>,</span></span><br><span class="line"><span class="params"><span class="type">unsigned</span> <span class="type">long</span>)</span>;</span><br><span class="line"> <span class="type">int</span> (*check_flags)(<span class="type">int</span>);</span><br><span class="line"> <span class="type">int</span> (*flock) (<span class="keyword">struct</span> file *, <span class="type">int</span>, <span class="keyword">struct</span> file_lock *);</span><br><span class="line"> <span class="type">ssize_t</span> (*splice_write)(<span class="keyword">struct</span> pipe_inode_info *, <span class="keyword">struct</span> file *, <span class="type">loff_t</span> *, <span class="type">size_t</span>, <span class="type">unsigned</span> <span class="type">int</span>);</span><br><span class="line"> <span class="type">ssize_t</span> (*splice_read)(<span class="keyword">struct</span> file *, <span class="type">loff_t</span> *, <span class="keyword">struct</span> pipe_inode_info *, <span class="type">size_t</span>, <span class="type">unsigned</span> <span class="type">int</span>);</span><br><span class="line"> <span class="type">int</span> (*setlease)(<span class="keyword">struct</span> file *, <span class="type">long</span>, <span class="keyword">struct</span> file_lock **, <span class="type">void</span> **);</span><br><span class="line"> <span class="type">long</span> (*fallocate)(<span class="keyword">struct</span> file *file, <span class="type">int</span> mode, <span class="type">loff_t</span> offset,</span><br><span class="line"> <span class="type">loff_t</span> len);</span><br><span class="line"> <span class="type">void</span> (*show_fdinfo)(<span class="keyword">struct</span> seq_file *m, <span class="keyword">struct</span> file *f);</span><br><span class="line"> <span class="meta">#<span class="keyword">ifndef</span> CONFIG_MMU</span></span><br><span class="line"> <span class="type">unsigned</span> (*mmap_capabilities)(<span class="keyword">struct</span> file *);</span><br><span class="line"> <span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"> <span class="type">ssize_t</span> (*copy_file_range)(<span class="keyword">struct</span> file *, <span class="type">loff_t</span>, <span class="keyword">struct</span> file *,</span><br><span class="line"> <span class="type">loff_t</span>, <span class="type">size_t</span>, <span class="type">unsigned</span> <span class="type">int</span>);</span><br><span class="line"> <span class="type">int</span> (*clone_file_range)(<span class="keyword">struct</span> file *, <span class="type">loff_t</span>, <span class="keyword">struct</span> file *, <span class="type">loff_t</span>,</span><br><span class="line"> u64);</span><br><span class="line"> <span class="type">ssize_t</span> (*dedupe_file_range)(<span class="keyword">struct</span> file *, u64, u64, <span class="keyword">struct</span> file *,</span><br><span class="line"> u64);</span><br><span class="line">} __randomize_layout;</span><br></pre></td></tr></table></figure>
+
+<p>file_operation中常用的成员：</p>
+<p><code>ower</code>拥有该结构体模块的指针，一般设置为THIS_MODULE。</p>
+<p><code>llseek</code>用于修改文件当前的读写位置。</p>
+<p><code>read</code>对应c库中的读取函数。</p>
+<p><code>write</code>对应c库中的写入函数。</p>
+<p><code>poll</code>轮训函数，由于查询设备是否可以进行非阻塞的读写。</p>
+<p><code>unlocked_ioctl</code>提供设备控制功能，对应应用中的ioctl函数。</p>
+<p><code>compat_ioctl</code>与上面函数功能一样，区别在于在 64 位系统上， 32 位的应用程序调用将会使用此函数。在 32 位的系统上运行 32 位的应用程序调用的是unlocked_ioctl。  </p>
+<p><code>mmap</code>用于将设备内存映射到用户空间中，用于直接操作缓存(比如LCD设备的显存)。</p>
+<p><code>open</code>对应c库中的open函数。</p>
+<p><code>release</code>对应c库中的close函数。</p>
+<p><code>fsync</code>由于处理待刷新的数据，用于将缓存数据刷新到磁盘。</p>
+<p><code>fasync</code>与上面功能相似，但是是异步操作。</p>
+<p>编写驱动时，根据需要实现部分函数即可。</p>
+<h2 id="字符设备开发步骤"><a href="#字符设备开发步骤" class="headerlink" title="字符设备开发步骤"></a>字符设备开发步骤</h2><h3 id="驱动加载和卸载"><a href="#驱动加载和卸载" class="headerlink" title="驱动加载和卸载"></a>驱动加载和卸载</h3><p>Linux驱动有两种方式运行，第一种就是将驱动编译进 Linux 内核中，这样当 Linux 内核启动的时候就会自动运行驱动程序。第二种就是将驱动编译成模块(Linux 下模块扩展名为.ko)，在 Linux 内核启动以后使用“<code>insmod</code>命令加载驱动模块，使用<code>rmmod</code>删除模块。</p>
+<p> 当执行加载和卸载命令时会分别执行两个函数，在驱动代码中使用以下方式注册者两个函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">module_init(xxx_init); <span class="comment">//注册模块加载函数</span></span><br><span class="line">module_exit(xxx_exit); <span class="comment">//注册模块卸载函数</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">/* 驱动入口函数 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> __init <span class="title function_">xxx_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line"> <span class="comment">/* 入口函数具体内容 */</span></span><br><span class="line"> <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 驱动出口函数 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> __exit <span class="title function_">xxx_exit</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line"> <span class="comment">/* 出口函数具体内容 */</span></span><br><span class="line">}</span><br><span class="line"><span class="comment">/* 将上面两个函数指定为驱动的入口和出口函数 */</span></span><br><span class="line">module_init(xxx_init);</span><br><span class="line">module_exit(xxx_exit);</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>__init</code>和<code>__exit</code>修饰实际上是c语言的attribute关键字，用来将函数放在特点区域，使用完就从内存卸载。</p>
+<p>驱动编译完成后是<code>.ko</code>后缀的文件，这时可以使用两个命令来加载驱动。首先是<code>insmod</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">insmod drv.ko</span><br></pre></td></tr></table></figure>
+
+<p>这种只会单纯的加载驱动，不会去管依赖关系。如果<code>drv.ko</code>依赖<code>first.ko</code>，那么必须先加载first。如果想要解决依赖问题，需要使用<code>modprobe</code>命令，modprobe 命令主要智能在提供了模块的依赖性分析、错误检查、错误报告等功能，推荐使用 modprobe 命令来加载驱动。 modprobe 命令默认会去/lib/modules/<kernel-version>目录中查找模块 ，一般自己制作的根文件系统中是不会有这个目录的，所以需要自己手动创建。</kernel-version></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rmmod drv.ko # 卸载驱动</span><br><span class="line">modprobe -r drv.ko # 卸载驱动</span><br></pre></td></tr></table></figure>
+
+<p>modprobe 命令可以卸载掉驱动模块所依赖的其他模块，前提是这些依赖模块已经没有被其他模块所使用，否则就不能使用 modprobe 来卸载驱动模块。所以对于模块的卸载，还是推荐使用 rmmod 命令。  </p>
+<h3 id="字符设备的注册与注销"><a href="#字符设备的注册与注销" class="headerlink" title="字符设备的注册与注销"></a>字符设备的注册与注销</h3><p>在上面提到的加载和卸载函数中一般会运行设备的注册和注销函数。函数原型如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title function_">register_chrdev</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> major, <span class="type">const</span> <span class="type">char</span> *name, <span class="type">const</span> <span class="keyword">struct</span> file_operations *fops)</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">unregister_chrdev</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> major, <span class="type">const</span> <span class="type">char</span> *name)</span></span><br></pre></td></tr></table></figure>
+
+<p>register_chrdev 函数用于注册字符设备 ：</p>
+<p><code>major</code>： 主设备号， Linux 下每个设备都有一个设备号，设备号分为主设备号和次设备号两部分，关于设备号后面会详细讲解。<br><code>name</code>：设备名字，指向一串字符串。<br><code>fops</code>： 结构体 file_operations 类型指针，指向设备的操作函数集合变量。</p>
+<p>unregister_chrdev 函数用于注销字符设备，此函数有两个参数，这两个参数含义如下：<br><code>major</code>： 要注销的设备对应的主设备号。<br><code>name</code>： 要注销的设备对应的设备名。  </p>
+<h3 id="设备的具体操作"><a href="#设备的具体操作" class="headerlink" title="设备的具体操作"></a>设备的具体操作</h3><p>file_operations结构体中包含了设备的具体操作，每个驱动都需要定义一个，并在register_chrdev函数中进行注册。</p>
+<p>一个基本的设备应该具备以下操作：</p>
+<ol>
+<li>能够进行打开和关闭操作，这对应着结构体中的open和release函数。</li>
+<li>能够进行读写操作，这对应着结构体中的read和write函数。</li>
+</ol>
+<p>具体步骤是实现这些函数并赋值到file_operations结构体中。</p>
+<h3 id="设备的LICENSE和作者信息"><a href="#设备的LICENSE和作者信息" class="headerlink" title="设备的LICENSE和作者信息"></a>设备的LICENSE和作者信息</h3><p>LICENSE是必须添加的，作者信息可以不添加。使用以下两个函数添加：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">MODULE_LICENSE() <span class="comment">//添加模块 LICENSE 信息</span></span><br><span class="line">MODULE_AUTHOR() <span class="comment">//添加模块作者信息</span></span><br></pre></td></tr></table></figure>
+
+<p>例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">MODULE_LICENSE(<span class="string">"GPL"</span>);</span><br><span class="line">MODULE_AUTHOR(<span class="string">"LO_StacNet"</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="Linux设备号"><a href="#Linux设备号" class="headerlink" title="Linux设备号"></a>Linux设备号</h2><p>Linux每个驱动都有一个设备号，由主设备号和次设备号注组成(合并成一个dev_t数据类型，高位为主设备号，低位为次设备号)。dev_t定义在<code>include/linux/types.h  </code>:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"> <span class="keyword">typedef</span> __u32 <span class="type">__kernel_dev_t</span>;</span><br><span class="line">...</span><br><span class="line"> <span class="keyword">typedef</span> <span class="type">__kernel_dev_t</span> <span class="type">dev_t</span>;</span><br></pre></td></tr></table></figure>
+
+<p>__u32定义在<code>include/uapi/asm-generic/int-ll64.h  </code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">int</span> __u32;</span><br></pre></td></tr></table></figure>
+
+<p>dev_t是一个32位数，高12位为主设备号，低20位为次设备号。</p>
+<p><code>include/linux/kdev_t.h   </code>中定义了关于设备号的操作函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> MINORBITS 20 <span class="comment">//次设备号位数</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MINORMASK ((1U &lt;&lt; MINORBITS) - 1) <span class="comment">//次设备号掩码</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAJOR(dev) ((unsigned int) ((dev) &gt;&gt; MINORBITS)) <span class="comment">//从dev_t中获取主设备号</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MINOR(dev) ((unsigned int) ((dev) &amp; MINORMASK)) <span class="comment">//从dev_t中获取次设备号</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MKDEV(ma,mi) (((ma) &lt;&lt; MINORBITS) | (mi)) <span class="comment">//使用主设备号和次设备号组合成设备号</span></span></span><br></pre></td></tr></table></figure>
+
+<p>设备号可以有两种分配方式：</p>
+<ol>
+<li>静态分配。由开发者自己设一个静态值，注意与已经使用的设备号区分。使用<code>cat /proc/devices  </code>查看已经使用的设备号。</li>
+<li>动态分配。申请一个驱动号，卸载时释放。</li>
+</ol>
+<p>动态分配使用以下函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">alloc_chrdev_region</span><span class="params">(<span class="type">dev_t</span> *dev, <span class="type">unsigned</span> baseminor, <span class="type">unsigned</span> count, <span class="type">const</span> <span class="type">char</span> *name)</span></span><br></pre></td></tr></table></figure>
+
+<p>函数 alloc_chrdev_region 用于申请设备号，此函数有 4 个参数：<br><code>dev</code>：保存申请到的设备号。</p>
+<p><code>baseminor</code>： 次设备号起始地址， alloc_chrdev_region 可以申请一段连续的多个设备号，这些设备号的主设备号一样，但是次设备号不同，次设备号以 baseminor 为起始地址并逐次递增。一般 baseminor 为 0，也就是说次设备号从 0 开始。<br><code>count</code>： 要申请的设备号数量。<br><code>name</code>：设备名字。  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">unregister_chrdev_region</span><span class="params">(<span class="type">dev_t</span> from, <span class="type">unsigned</span> count)</span></span><br></pre></td></tr></table></figure>
+
+<p>销毁字符设备时要释放设备号。</p>
+<p><code>from</code>：要释放的设备号。<br><code>count</code>： 表示从 from 开始， 要释放的设备号数量。  </p>
+<h2 id="应用操作函数"><a href="#应用操作函数" class="headerlink" title="应用操作函数"></a>应用操作函数</h2><p>通过c库的文件操作函数可以操作字符驱动，一般使用open、read、write、close函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">open</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *pathname, <span class="type">int</span> flags)</span></span><br></pre></td></tr></table></figure>
+
+<p><code>pathname</code>：要打开的设备或者文件名。<br><code>flags</code>： 文件打开模式，以下三种模式必选其一:</p>
+<p><code>O_RDONLY</code>-只读;<code>O_WRONLY</code>-只写;<code>O_RDWR</code>读写;还有其他模式，可以百度一下。</p>
+<p>返回值：如果文件打开成功的话返回文件的文件描述符。  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ssize_t</span> <span class="title function_">read</span><span class="params">(<span class="type">int</span> fd, <span class="type">void</span> *buf, <span class="type">size_t</span> count)</span></span><br></pre></td></tr></table></figure>
+
+<p><code>fd</code>：要读取的文件描述符，读取文件之前要先用 open 函数打开文件， open 函数打开文件成功以后会得到文件描述符。<br><code>buf</code>： 数据读取到此 buf 中。<br><code>count</code>： 要读取的数据长度，也就是字节数。<br>返回值： 读取成功的话返回读取到的字节数；如果返回 0 表示读取到了文件末尾；如果返回负值，表示读取失败。  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ssize_t</span> <span class="title function_">write</span><span class="params">(<span class="type">int</span> fd, <span class="type">const</span> <span class="type">void</span> *buf, <span class="type">size_t</span> count)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>fd</code>：要进行写操作的文件描述符，写文件之前要先用 open 函数打开文件， open 函数打开文件成功以后会得到文件描述符。<br><code>buf</code>： 要写入的数据。<br><code>count</code>： 要写入的数据长度，也就是字节数。<br>返回值： 写入成功的话返回写入的字节数；如果返回 0 表示没有写入任何数据；  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">close</span><span class="params">(<span class="type">int</span> fd)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>fd</code>：要关闭的文件描述符。  </p>
+<p>返回值： 0 表示关闭成功，负值表示关闭失败。在 Ubuntu 中输入“ man 2 close”命令即可查看 close 函数的详细内容。  </p>
+<h2 id="LED驱动的开发"><a href="#LED驱动的开发" class="headerlink" title="LED驱动的开发"></a>LED驱动的开发</h2><p>现在终于进行到了点灯环节。首先我们需要了解几个概念。</p>
+<h3 id="基本的驱动原理"><a href="#基本的驱动原理" class="headerlink" title="基本的驱动原理"></a>基本的驱动原理</h3><p>LED灯的基本驱动原理大家应该都很熟悉了，就是操作外设的寄存器。因此我们需要拿到寄存器地址。但是在Linux中不能直接操作地址，需要一些转换。</p>
+<h3 id="地址映射与虚拟地址"><a href="#地址映射与虚拟地址" class="headerlink" title="地址映射与虚拟地址"></a>地址映射与虚拟地址</h3><p>Linux中有一个MMU(Memory Manage Unit  内存管理单元)，老版本linux要求处理器必须要有MMU单元，但是新版本Linux已经支持无MMU的处理器了。但是实际上仍然基于MMU运行。MMU主要完成以下功能：</p>
+<ol>
+<li>将虚拟地址映射到物理地址。</li>
+<li>内存保护，设置存储器的访问权限，设置虚拟存储空间的缓冲特性。</li>
+</ol>
+<p>其中对我们使用影响最大的就是第一点，这也是所谓虚拟内存的来源。它可以把DDR(我使用的是512M)映射到32位处理器4G的内存地址中，至于多出来的空间怎么用的，比较复杂，这里就不说了(我也不知道)。</p>
+<p>Linux内核启动时会初始化MMU，设置好内存映射，之后访问的都是虚拟地址。如果没有开启MMU，可以直接对物理寄存器地址进行读写，但如果开启了MMU，就必须获取对应虚拟地址才能进行操作。这里就涉及到两个函数了：</p>
+<ul>
+<li>ioremap函数</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> ioremap(cookie,size) __arm_ioremap((cookie), (size), MT_DEVICE)</span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> __iomem * __arm_ioremap(<span class="type">phys_addr_t</span> phys_addr, <span class="type">size_t</span> size, <span class="type">unsigned</span> <span class="type">int</span> mtype)</span><br><span class="line">{</span><br><span class="line"> <span class="keyword">return</span> arch_ioremap_caller(phys_addr, size, mtype, __builtin_return_address(<span class="number">0</span>));</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<p>ioremap 是个宏，有两个参数： cookie 和 size ，真正起作用的函数有三个参数。</p>
+<p><code>phys_addr</code>：要映射给的物理起始地址。<br><code>size</code>：要映射的内存空间大小。<br><code>mtype</code>： ioremap 的类型，可以选择 <code>MT_DEVICE</code>、 <code>MT_DEVICE_NONSHARED</code>、 <code>MT_DEVICE_CACHED</code>和 <code>MT_DEVICE_WC</code>， ioremap 函数选择 MT_DEVICE。<br>返回值： __iomem 类型的指针，指向映射后的虚拟空间首地址。  </p>
+<p>假如要获取ZYNQ 的 APER_CLK_CTRL 寄存器对应的虚拟地址 :</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> APER_CLK_CTRL 0xF800012C</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> __iomem *aper_clk_ctrl_addr;</span><br><span class="line">aper_clk_ctrl_addr = ioremap(APER_CLK_CTRL, <span class="number">4</span>);</span><br></pre></td></tr></table></figure>
+
+<p>宏定义 APER_CLK_CTRL 是寄存器物理地址， aper_clk_ctrl_addr 是该物理地址映射后的虚拟地址。对于 ZYNQ 来说一个寄存器是 4 字节(32 位)的，因此映射的内存长度为 4。映射完成以后直接对 aper_clk_ctrl_addr 进行读写操作即可。</p>
+<ul>
+<li>iounmap函数</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">iounmap</span> <span class="params">(<span class="keyword">volatile</span> <span class="type">void</span> __iomem *addr)</span></span><br></pre></td></tr></table></figure>
+
+<p>卸载驱动的时候需要使用 iounmap 函数释放掉 ioremap 函数所做的映射 。</p>
+<p>要取消掉 APER_CLK_CTRL 寄存器的地址映射 ：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iounmap(aper_clk_ctrl_addr);</span><br></pre></td></tr></table></figure>
+
+<h3 id="IO内存访问函数"><a href="#IO内存访问函数" class="headerlink" title="IO内存访问函数"></a>IO内存访问函数</h3><p>当外部寄存器或内存映射到内存空间时，称为 I/O 内存 。使用 ioremap 函数将寄存器的物理地址映射到虚拟地址以后，我们就可以直接通过指针访问这些地址，但是 Linux 内核不建议这么做，而是推荐操作函数来进行读写操作。 </p>
+<ul>
+<li>读操作函数</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">u8 <span class="title function_">readb</span><span class="params">(<span class="type">const</span> <span class="keyword">volatile</span> <span class="type">void</span> __iomem *addr)</span></span><br><span class="line">u16 <span class="title function_">readw</span><span class="params">(<span class="type">const</span> <span class="keyword">volatile</span> <span class="type">void</span> __iomem *addr)</span></span><br><span class="line">u32 <span class="title function_">readl</span><span class="params">(<span class="type">const</span> <span class="keyword">volatile</span> <span class="type">void</span> __iomem *addr)</span></span><br></pre></td></tr></table></figure>
+
+<p>readb、 readw 和 readl 这三个函数分别对应 8bit、 16bit 和 32bit 读操作，参数 addr 就是要读取写内存地址，返回值就是读取到的数据。</p>
+<ul>
+<li>写操作函数</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">writeb</span><span class="params">(u8 value, <span class="keyword">volatile</span> <span class="type">void</span> __iomem *addr)</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">writew</span><span class="params">(u16 value, <span class="keyword">volatile</span> <span class="type">void</span> __iomem *addr)</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">writel</span><span class="params">(u32 value, <span class="keyword">volatile</span> <span class="type">void</span> __iomem *addr)</span></span><br></pre></td></tr></table></figure>
+
+<p>writeb、 writew 和 writel 这三个函数分别对应 8bit、 16bit 和 32bit 写操作，参数 value是要写入的数值， addr 是要写入的地址。  </p>
+<h3 id="GPIO的寄存器"><a href="#GPIO的寄存器" class="headerlink" title="GPIO的寄存器"></a>GPIO的寄存器</h3><p>终于到属性的寄存器操作环节了，这里主要来源是官方的数据手册，就不细说了。</p>
+<h3 id="LED驱动示例代码"><a href="#LED驱动示例代码" class="headerlink" title="LED驱动示例代码"></a>LED驱动示例代码</h3><p>这里就直接使用正点原子的代码示例吧。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br></pre></td><td class="code"><pre><span class="line">1 /***************************************************************</span><br><span class="line">2 Copyright © ALIENTEK Co., Ltd. 1998-2029. All rights reserved.</span><br><span class="line">3 文件名 : led.c</span><br><span class="line">4 作者 : 邓涛</span><br><span class="line">5 版本 : V1.0</span><br><span class="line">6 描述 : ZYNQ LED 驱动文件。</span><br><span class="line">7 其他 : 无</span><br><span class="line">8 论坛 : www.openedv.com</span><br><span class="line">9 日志 : 初版 V1.0 2019/1/30 邓涛创建</span><br><span class="line">10 ***************************************************************/</span><br><span class="line">11</span><br><span class="line">12 #include &lt;linux/types.h&gt;</span><br><span class="line">13 #include &lt;linux/kernel.h&gt;</span><br><span class="line">14 #include &lt;linux/delay.h&gt;</span><br><span class="line">15 #include &lt;linux/ide.h&gt;</span><br><span class="line">16 #include &lt;linux/init.h&gt;</span><br><span class="line">17 #include &lt;linux/module.h&gt;</span><br><span class="line">18 #include &lt;linux/errno.h&gt;</span><br><span class="line">19 #include &lt;linux/gpio.h&gt;</span><br><span class="line">20 #include &lt;asm/mach/map.h&gt;</span><br><span class="line">21 #include &lt;asm/uaccess.h&gt;</span><br><span class="line">22 #include &lt;asm/io.h&gt;</span><br><span class="line">23</span><br><span class="line">24 #define LED_MAJOR 200 /* 主设备号 */</span><br><span class="line">25 #define LED_NAME "led" /* 设备名字 */</span><br><span class="line">26</span><br><span class="line">27 /*</span><br><span class="line">28 * GPIO 相关寄存器地址定义</span><br><span class="line">29 */</span><br><span class="line">30 #define ZYNQ_GPIO_REG_BASE 0xE000A000</span><br><span class="line">31 #define DATA_OFFSET 0x00000040</span><br><span class="line">32 #define DIRM_OFFSET 0x00000204</span><br><span class="line">33 #define OUTEN_OFFSET 0x00000208</span><br><span class="line">34 #define INTDIS_OFFSET 0x00000214</span><br><span class="line">35 #define APER_CLK_CTRL 0xF800012C</span><br><span class="line">36</span><br><span class="line">37 /* 映射后的寄存器虚拟地址指针 */</span><br><span class="line">38 static void __iomem *data_addr;</span><br><span class="line">39 static void __iomem *dirm_addr;</span><br><span class="line">40 static void __iomem *outen_addr;</span><br><span class="line">41 static void __iomem *intdis_addr;</span><br><span class="line">42 static void __iomem *aper_clk_ctrl_addr;</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45 /*</span><br><span class="line">46 * @description : 打开设备</span><br><span class="line">47 * @param – inode : 传递给驱动的 inode</span><br><span class="line">48 * @param – filp : 设备文件， file 结构体有个叫做 private_data 的成员变量</span><br><span class="line">49 * 一般在 open 的时候将 private_data 指向设备结构体。</span><br><span class="line">50 * @return : 0 成功;其他 失败</span><br><span class="line">51 */</span><br><span class="line">52 static int led_open(struct inode *inode, struct file *filp)</span><br><span class="line">53 {</span><br><span class="line">54 return 0;</span><br><span class="line">55 }</span><br><span class="line">56</span><br><span class="line">57 /*</span><br><span class="line">58 * @description : 从设备读取数据</span><br><span class="line">59 * @param – filp : 要打开的设备文件(文件描述符)</span><br><span class="line">60 * @param – buf : 返回给用户空间的数据缓冲区</span><br><span class="line">61 * @param – cnt : 要读取的数据长度</span><br><span class="line">62 * @param – offt : 相对于文件首地址的偏移</span><br><span class="line">63 * @return : 读取的字节数，如果为负值，表示读取失败</span><br><span class="line">64 */</span><br><span class="line">65 static ssize_t led_read(struct file *filp, char __user *buf,</span><br><span class="line">66 size_t cnt, loff_t *offt)</span><br><span class="line">67 {</span><br><span class="line">68 return 0;</span><br><span class="line">69 }</span><br><span class="line">70</span><br><span class="line">71 /*</span><br><span class="line">72 * @description : 向设备写数据</span><br><span class="line">73 * @param – filp : 设备文件，表示打开的文件描述符</span><br><span class="line">74 * @param – buf : 要写给设备写入的数据</span><br><span class="line">75 * @param – cnt : 要写入的数据长度</span><br><span class="line">76 * @param – offt : 相对于文件首地址的偏移</span><br><span class="line">77 * @return : 写入的字节数，如果为负值，表示写入失败</span><br><span class="line">78 */</span><br><span class="line">79 static ssize_t led_write(struct file *filp, const char __user *buf,</span><br><span class="line">80 size_t cnt, loff_t *offt)</span><br><span class="line">81 {</span><br><span class="line">82 int ret;</span><br><span class="line">83 int val;</span><br><span class="line">84 char kern_buf[1];</span><br><span class="line">85</span><br><span class="line">86 ret = copy_from_user(kern_buf, buf, cnt);// 得到应用层传递过来的数据</span><br><span class="line">87 if(0 &gt; ret) {</span><br><span class="line">88 printk(KERN_ERR "kernel write failed!\r\n");</span><br><span class="line">89 return -EFAULT;</span><br><span class="line">90 }</span><br><span class="line">91</span><br><span class="line">92 val = readl(data_addr);</span><br><span class="line">93 if (0 == kern_buf[0])</span><br><span class="line">94 val &amp;= ~(0x1U &lt;&lt; 7); // 如果传递过来的数据是 0 则关闭 led</span><br><span class="line">95 else if (1 == kern_buf[0])</span><br><span class="line">96 val |= (0x1U &lt;&lt; 7); // 如果传递过来的数据是 1 则点亮 led</span><br><span class="line">97</span><br><span class="line">98 writel(val, data_addr);</span><br><span class="line">99 return 0;</span><br><span class="line">100 }</span><br><span class="line">101</span><br><span class="line">102 /*</span><br><span class="line">103 * @description : 关闭/释放设备</span><br><span class="line">104 * @param – filp : 要关闭的设备文件(文件描述符)</span><br><span class="line">105 * @return : 0 成功;其他 失败</span><br><span class="line">106 */</span><br><span class="line">107 static int led_release(struct inode *inode, struct file *filp)</span><br><span class="line">108 {</span><br><span class="line">109 return 0;</span><br><span class="line">110 }</span><br><span class="line">111</span><br><span class="line">112 /* 设备操作函数 */</span><br><span class="line">113 static struct file_operations led_fops = {</span><br><span class="line">114 .owner = THIS_MODULE,</span><br><span class="line">115 .open = led_open,</span><br><span class="line">116 .read = led_read,</span><br><span class="line">117 .write = led_write,</span><br><span class="line">118 .release = led_release,</span><br><span class="line">119 };</span><br><span class="line">120</span><br><span class="line">121 static int __init led_init(void)</span><br><span class="line">122 {</span><br><span class="line">123 u32 val;</span><br><span class="line">124 int ret;</span><br><span class="line">125</span><br><span class="line">126 /* 1.寄存器地址映射 */</span><br><span class="line">127 data_addr = ioremap(ZYNQ_GPIO_REG_BASE + DATA_OFFSET, 4);</span><br><span class="line">128 dirm_addr = ioremap(ZYNQ_GPIO_REG_BASE + DIRM_OFFSET, 4);</span><br><span class="line">129 outen_addr = ioremap(ZYNQ_GPIO_REG_BASE + OUTEN_OFFSET, 4);</span><br><span class="line">130 intdis_addr = ioremap(ZYNQ_GPIO_REG_BASE + INTDIS_OFFSET, 4);</span><br><span class="line">131 aper_clk_ctrl_addr = ioremap(APER_CLK_CTRL, 4);</span><br><span class="line">132</span><br><span class="line">133 /* 2.使能 GPIO 时钟 */</span><br><span class="line">134 val = readl(aper_clk_ctrl_addr);</span><br><span class="line">135 val |= (0x1U &lt;&lt; 22);</span><br><span class="line">136 writel(val, aper_clk_ctrl_addr);</span><br><span class="line">137</span><br><span class="line">138 /* 3.关闭中断功能 */</span><br><span class="line">139 val |= (0x1U &lt;&lt; 7);</span><br><span class="line">140 writel(val, intdis_addr);</span><br><span class="line">141</span><br><span class="line">142 /* 4.设置 GPIO 为输出功能 */</span><br><span class="line">143 val = readl(dirm_addr);</span><br><span class="line">144 val |= (0x1U &lt;&lt; 7);</span><br><span class="line">145 writel(val, dirm_addr);</span><br><span class="line">146</span><br><span class="line">147 /* 5.使能 GPIO 输出功能 */</span><br><span class="line">148 val = readl(outen_addr);</span><br><span class="line">149 val |= (0x1U &lt;&lt; 7);</span><br><span class="line">150 writel(val, outen_addr);</span><br><span class="line">151</span><br><span class="line">152 /* 6.默认关闭 LED */</span><br><span class="line">153 val = readl(data_addr);</span><br><span class="line">154 val &amp;= ~(0x1U &lt;&lt; 7);</span><br><span class="line">155 writel(val, data_addr);</span><br><span class="line">156</span><br><span class="line">157 /* 7.注册字符设备驱动 */</span><br><span class="line">158 ret = register_chrdev(LED_MAJOR, LED_NAME, &amp;led_fops);</span><br><span class="line">159 if(0 &gt; ret){</span><br><span class="line">160 printk(KERN_ERR "Register LED driver failed!\r\n");</span><br><span class="line">161 return ret;</span><br><span class="line">162 }</span><br><span class="line">163</span><br><span class="line">164 return 0;</span><br><span class="line">165 }</span><br><span class="line">166</span><br><span class="line">167 static void __exit led_exit(void)</span><br><span class="line">168 {</span><br><span class="line">169 /* 1.卸载设备 */</span><br><span class="line">170 unregister_chrdev(LED_MAJOR, LED_NAME);</span><br><span class="line">171</span><br><span class="line">172 /* 2.取消内存映射 */</span><br><span class="line">173 iounmap(data_addr);</span><br><span class="line">174 iounmap(dirm_addr);</span><br><span class="line">175 iounmap(outen_addr);</span><br><span class="line">176 iounmap(intdis_addr);</span><br><span class="line">177 iounmap(aper_clk_ctrl_addr);</span><br><span class="line">178 }</span><br><span class="line">179</span><br><span class="line">180 /* 驱动模块入口和出口函数注册 */</span><br><span class="line">181 module_init(led_init);</span><br><span class="line">182 module_exit(led_exit);</span><br><span class="line">183</span><br><span class="line">184 MODULE_AUTHOR("DengTao &lt;773904075@qq.com&gt;");</span><br><span class="line">185 MODULE_DESCRIPTION("Alientek ZYNQ GPIO LED Driver");</span><br><span class="line">186 MODULE_LICENSE("GPL");</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>第 24<del>25 行， 定义了两个宏，设备名字和设备的主设备号。<br>第 30</del>35 行，本实验要用到的寄存器宏定义。<br>第 38<del>42 行，经过内存映射以后的寄存器地址指针。<br>第 52</del>55 行， led_open 函数，为空函数，可以自行在此函数中添加相关内容，一般在此函数中将设备结构体作为参数 filp 的私有数据(filp-&gt;private_data)。<br>第 65<del>69 行， led_read 函数，为空函数，如果想在应用程序中读取 LED 的状态，那么就可以在此函数中添加相应的代码，比如读取 MIO 的 DATA 寄存器的值，然后返回给应用程序。<br>第 79</del>100 行， led_write 函数，实现对 LED 灯的开关操作，当应用程序调用 write 函数<br>向 led 设备写数据的时候此函数就会执行。首先通过函数 copy_from_user 获取应用程序发送过来的操作信息(打开还是关闭 LED)，最后根据应用程序的操作信息来控制寄存器打开或关闭LED 灯。<br>第 107<del>110 行， led_release 函数，为空函数，可以自行在此函数中添加相关内容，一般关闭设备的时候会释放掉 led_open 函数中添加的私有数据。<br>第 113</del>119 行，设备文件操作结构体 led_fops 的定义和初始化。<br>第 121<del>165 行，驱动入口函数 led_init，此函数实现了 LED 的初始化工作， 127</del>131 行通过 ioremap 函数获取物理寄存器地址映射后的虚拟地址，得到寄存器对应的虚拟地址以后就可以完成相关初始化工作了。比如使能 GPIO 时钟、 关闭 MIO7 的中断功能、配置并使能 MIO7 的输出功能等。最后，最重要的一步！使用 register_chrdev 函数注册 led 这个字符设备。<br>第 167<del>178 行，驱动出口函数 led_exit，首先使用函数 unregister_chrdev 注销 led 这<br>个字符设备，然后调用 iounmap 函数取消内存映射，因为设备已经被卸载，也就意味用不到了，必须要取消映射；需要注意的是这两顺序不要反了，不能在设备没有卸载的情况下，你就把人家的内存映射给取消了，这是不合理的！<br>第 181</del>182 行，使用 module_init 和 module_exit 这两个函数指定 led 设备驱动加载和卸载函数。<br>第 184~186 行，添加模块 LICENSE、 作者信息以及模块描述信息。  </p>
+<p>对应的应用APP代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* @description : main 主程序</span></span><br><span class="line"><span class="comment">* @param - argc : argv 数组元素个数</span></span><br><span class="line"><span class="comment">* @param - argv : 具体参数</span></span><br><span class="line"><span class="comment">* @return : 0 成功;其他 失败</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span></span><br><span class="line">{</span><br><span class="line"> <span class="type">int</span> fd, ret;</span><br><span class="line"> <span class="type">unsigned</span> <span class="type">char</span> buf[<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line"> <span class="keyword">if</span>(<span class="number">3</span> != argc) {</span><br><span class="line"> <span class="built_in">printf</span>(<span class="string">"Usage:\n"</span></span><br><span class="line"> <span class="string">"\t./ledApp /dev/led 1 @ close LED\n"</span></span><br><span class="line"> <span class="string">"\t./ledApp /dev/led 0 @ open LED\n"</span></span><br><span class="line"> );</span><br><span class="line"> <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"> }</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 打开设备 */</span></span><br><span class="line"> fd = open(argv[<span class="number">1</span>], O_RDWR);</span><br><span class="line"> <span class="keyword">if</span>(<span class="number">0</span> &gt; fd) {</span><br><span class="line"> <span class="built_in">printf</span>(<span class="string">"file %s open failed!\r\n"</span>, argv[<span class="number">1</span>]);</span><br><span class="line"> <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"> }</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 将字符串转换为 int 型数据 */</span></span><br><span class="line"> buf[<span class="number">0</span>] = atoi(argv[<span class="number">2</span>]);</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 向驱动写入数据 */</span></span><br><span class="line"> ret = write(fd, buf, <span class="keyword">sizeof</span>(buf));</span><br><span class="line"> <span class="keyword">if</span>(<span class="number">0</span> &gt; ret){</span><br><span class="line"> <span class="built_in">printf</span>(<span class="string">"LED Control Failed!\r\n"</span>);</span><br><span class="line"> close(fd);</span><br><span class="line"> <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"> }</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 关闭设备 */</span></span><br><span class="line"> close(fd);</span><br><span class="line"> <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<h3 id="编译和运行"><a href="#编译和运行" class="headerlink" title="编译和运行"></a>编译和运行</h3><p>首先是编译驱动代码。驱动文件依赖了内核的的大量源码，不能直接通过交叉工具链编译。因此首先需要下载linux源码，由于petalinux本身没有包含内核文件，因此需要我们手动下载linux内核。使用以下命令下载：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone --depth 1 https://github.com/Xilinx/linux-xlnx.git</span><br></pre></td></tr></table></figure>
+
+<p>或者，在Petalinux编译后，在<code>build/tmp/work-shared/plnx_arm/kernel-source/</code>中可以找到代码，将其复制到一个易于寻找的目录下。输入:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">make ARCH=arm xilinx_zynq_defconfig</span><br><span class="line">make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j12</span><br></pre></td></tr></table></figure>
+
+<p>等待编译完成。</p>
+<p>如果整编内核，可以放在内核目录下的<code>drivers/char</code>下，并在该目录的Makefile中添加<code>obj-m +=  demo_driver.o</code>。这样在编译内核时可以编译该驱动。</p>
+<p>如果只是单独编译，使用<strong>make modules</strong>。</p>
+<p>make modules 指令为编译内核模块指令，该指令的功能是编译内核中所有配置为模块的程序得到模块ko文件，make modules 命令只能在内核源码顶层目录下执行。如果想单独编译一个模块，使用<code>M=</code>参数。<code>M=DIR</code>，程序会自动跳转到所指定的DIR目录中查找模块源码，编译生成ko文件。</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make  M=DIR modules</span><br></pre></td></tr></table></figure>
+
+<p>基于此，我们可以编写一个makefile:</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">KDIR := /home/lo/kernel-source <span class="comment">#内核源码目录</span></span><br><span class="line"></span><br><span class="line">obj-m	:= led.o</span><br><span class="line"></span><br><span class="line"><span class="section">all:</span></span><br><span class="line">	make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -C <span class="variable">$(KDIR)</span> M=`pwd` modules</span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">	make -C <span class="variable">$(KDIR)</span> M=`pwd` clean</span><br></pre></td></tr></table></figure>
+
+<p>之后使用make命令即可。</p>
+<p>获得.ko文件后复制到开发板，如果有网络，可以使用以下方式进行复制：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scp led.ko root@192.168.1.133:/lib/modules/4.14.0-xilinx</span><br></pre></td></tr></table></figure>
+
+<p>输入命令加载驱动:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">insmod led.ko</span><br></pre></td></tr></table></figure>
+
+<p>之后可以在<code>/proc/devices</code>中找到文件。</p>
+<p>或者：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">depmod # 生成.dep文件</span><br><span class="line">modprobe led.ko</span><br></pre></td></tr></table></figure>
+
+<p>然后需要在/dev目录下创建节点:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mknod /dev/led c 200 0</span><br></pre></td></tr></table></figure>
+
+<p><code>mknod</code>是创建节点命令，<code>/dev/led</code>是要创建的节点文件，<code>c</code>表示<br>这是个字符设备，<code>200</code>是设备的主设备号，<code>0</code>是设备的次设备号。创建完成以后就会存<br>在/dev/led 这个文件  </p>
+<p>编译APP。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">arm-linux-gnueabihf-gcc ledApp.c -o ledApp</span><br></pre></td></tr></table></figure>
+
+<p>复制到开发板运行:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./ledApp /dev/led 1 //点亮 LED 灯</span><br><span class="line">./ledApp /dev/led 0 //关闭 LED 灯</span><br></pre></td></tr></table></figure>
+
+<p>当然如果使用petalinux工具，可以更简单的添加驱动，但那样编译时间长，不适合调试。</p>
+<h2 id="新字符设备"><a href="#新字符设备" class="headerlink" title="新字符设备"></a>新字符设备</h2><p>以上字符设备的注册方法使用的是老版本的API(register_chrdev,unregister_chrdev)，现在都推荐使用新的API函数(cdev系列函数)，并有一套比较标准的创建方法。</p>
+<h3 id="新的字符设备注册方法"><a href="#新的字符设备注册方法" class="headerlink" title="新的字符设备注册方法"></a>新的字符设备注册方法</h3><p>在 Linux 中使用 cdev 结构体表示一个字符设备， cdev 结构体在<code>include/linux/cdev.h</code>文件中的定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> {</span></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">kobject</span> <span class="title">kobj</span>;</span></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">module</span> *<span class="title">owner</span>;</span></span><br><span class="line"> <span class="type">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> *<span class="title">ops</span>;</span></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">list_head</span> <span class="title">list</span>;</span></span><br><span class="line"> <span class="type">dev_t</span> dev;</span><br><span class="line"> <span class="type">unsigned</span> <span class="type">int</span> count;</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+
+<p>  这你需要关注两个成员，<code>ops</code>这就是要实现的file_operations，<code>dev</code>设备号。与老API不同，这里传递参数使用一个结构体传输。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> <span class="title">test_cdev</span>;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>cdev_init函数</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">cdev_init</span><span class="params">(<span class="keyword">struct</span> cdev *cdev, <span class="type">const</span> <span class="keyword">struct</span> file_operations *fops)</span></span><br></pre></td></tr></table></figure>
+
+<p>初始化结构体，用来设定一些成员的初始值。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> <span class="title">testcdev</span>;</span></span><br><span class="line"><span class="comment">/* 设备操作函数 */</span></span><br><span class="line"> <span class="type">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> <span class="title">test_fops</span> =</span> {</span><br><span class="line"> .owner = THIS_MODULE,</span><br><span class="line"> <span class="comment">/* 其他具体的初始项 */</span></span><br><span class="line">};</span><br><span class="line">testcdev.owner = THIS_MODULE;</span><br><span class="line">cdev_init(&amp;testcdev, &amp;test_fops); <span class="comment">/* 初始化 cdev 结构体变量 */</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>cdev_add函数</li>
+</ul>
+<p>该函数就是实际的注册函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">cdev_add</span><span class="params">(<span class="keyword">struct</span> cdev *p, <span class="type">dev_t</span> dev, <span class="type">unsigned</span> count)</span></span><br></pre></td></tr></table></figure>
+
+<p>参数 p 指向要添加的字符设备(cdev 结构体变量)，参数 dev 就是设备所使用的设备号，参数 count 是要添加的设备数量。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cdev_add(&amp;testcdev, devid, <span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>cdev_del函数</li>
+</ul>
+<p>该函数就是实际的注销函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">cdev_del</span><span class="params">(<span class="keyword">struct</span> cdev *p)</span></span><br></pre></td></tr></table></figure>
+
+<p>示例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cdev_del(&amp;testcdev); <span class="comment">/* 删除 cdev */</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="使用文件的私有数据"><a href="#使用文件的私有数据" class="headerlink" title="使用文件的私有数据"></a>使用文件的私有数据</h3><p>之前，我们使用变量来存储驱动的设备号，状态以及其他数据。这样其实不专业，对于一个设备的所有属性信息我们最好将其做成一个结构体，在open中传到私有数据中。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">test_dev</span>{</span></span><br><span class="line"> <span class="type">dev_t</span> devid; <span class="comment">/* 设备号 */</span></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> <span class="title">cdev</span>;</span> <span class="comment">/* cdev */</span></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="keyword">class</span> *<span class="keyword">class</span>;</span> <span class="comment">/* 类 */</span></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">device</span> *<span class="title">device</span>;</span> <span class="comment">/* 设备 */</span></span><br><span class="line"> <span class="type">int</span> major; <span class="comment">/* 主设备号 */</span></span><br><span class="line"> <span class="type">int</span> minor; <span class="comment">/* 次设备号 */</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">test_dev</span> <span class="title">testdev</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">test_open</span><span class="params">(<span class="keyword">struct</span> inode *inode, <span class="keyword">struct</span> file *filp)</span></span><br><span class="line">{</span><br><span class="line"> filp-&gt;private_data = &amp;testdev; <span class="comment">/* 设置私有数据 */</span></span><br><span class="line"> <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<p>之后在 write、 read、 close 等函数中直接读取private_data 即可得到设备结构体 。</p>
+<h3 id="自动创建设备节点"><a href="#自动创建设备节点" class="headerlink" title="自动创建设备节点"></a>自动创建设备节点</h3><p>我们往常加载驱动后还需要手动<code>mknod</code>创建设备节点，在驱动中实现自动创建设备节点的功能以后，使用 modprobe 加载驱动模块成功的话就会自动在/dev 目录下创建对应的设备文件。</p>
+<p>自动功能由udev实现，这是一个应用程序，构建文件系统时会构建一个建议版本mdev。它会检测系统中硬件设备状态，自动创建和删除设备文件。这样可以在安装驱动时自动创建节点，也可以管理热拔插。</p>
+<ul>
+<li>创建类和删除类</li>
+</ul>
+<p>自动创建设备节点的工作是在驱动程序的入口函数中完成的，一般在 cdev_add 函数后面添加自动创建设备节点相关代码。在<code>include/linux/device.h  </code>中可以看到：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> class_create(owner, name) \</span></span><br><span class="line"><span class="meta"> ({ \</span></span><br><span class="line"><span class="meta"> static struct lock_class_key __key; \</span></span><br><span class="line"><span class="meta"> __class_create(owner, name, &amp;__key); \</span></span><br><span class="line"><span class="meta"> })</span></span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="keyword">class</span> *__<span class="title">class_create</span>(<span class="keyword">struct</span> <span class="title">module</span> *<span class="title">owner</span>, <span class="title">const</span> <span class="title">char</span> *<span class="title">name</span>,</span></span><br><span class="line"><span class="class"> <span class="keyword">struct</span> <span class="title">lock_class_key</span> *<span class="title">key</span>)</span></span><br></pre></td></tr></table></figure>
+
+<p>宏展开后：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> class *<span class="title function_">class_create</span> <span class="params">(<span class="keyword">struct</span> module *owner, <span class="type">const</span> <span class="type">char</span> *name)</span></span><br></pre></td></tr></table></figure>
+
+<p>该代码实现了类的创建。参数 owner 一般为 THIS_MODULE，参数 name 是类名字。返回值是个指向结构体 class 的指针，也就是创建的类。  </p>
+<p>卸载驱动程序的时候需要删除掉类，类删除函数为 class_destroy，函数原型如下：  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">class_destroy</span><span class="params">(<span class="keyword">struct</span> class *cls)</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>设备创建和删除</li>
+</ul>
+<p>除了创建类以外，还需要在这个类下创建一个设备。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> device *<span class="title function_">device_create</span><span class="params">(<span class="keyword">struct</span> class *class, <span class="keyword">struct</span> device *parent, <span class="type">dev_t</span> devt, <span class="type">void</span> *drvdata, <span class="type">const</span> <span class="type">char</span>*fmt, ...)</span></span><br></pre></td></tr></table></figure>
+
+<p>device_create 是个可变参数函数，参数 class 就是设备要创建哪个类下面；参数 parent是父设备，一般为 NULL，也就是没有父设备；参数 devt 是设备号；参数 drvdata 是设备可能会使用的一些数据，一般为 NULL；参数 fmt 是设备名字，如果设置 fmt=xxx 的话，就会生成/dev/xxx 这个设备文件。返回值就是创建好的设备。</p>
+<p>卸载驱动的时候需要删除掉创建的设备:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">device_destroy</span><span class="params">(<span class="keyword">struct</span> class *class, <span class="type">dev_t</span> devt)</span></span><br></pre></td></tr></table></figure>
+
+<p>参数 classs 是要删除的设备所处的类，参数 devt 是要删除的设备号 。</p>
+<h3 id="使用新API的代码示例"><a href="#使用新API的代码示例" class="headerlink" title="使用新API的代码示例"></a>使用新API的代码示例</h3><p>在上面代码的基础上，这里只列出不同部分：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NEWCHRLED_CNT 1 <span class="comment">/* 设备号个数 */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NEWCHRLED_NAME <span class="string">"newchrled"</span> <span class="comment">/* 名字 */</span></span></span><br><span class="line">...</span><br><span class="line"> <span class="comment">/* newchrled 设备结构体 */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">newchrled_dev</span> {</span></span><br><span class="line">	<span class="type">dev_t</span> devid; <span class="comment">/* 设备号 */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> <span class="title">cdev</span>;</span> <span class="comment">/* cdev */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="keyword">class</span> *<span class="keyword">class</span>;</span> <span class="comment">/* 类 */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">device</span> *<span class="title">device</span>;</span> <span class="comment">/* 设备 */</span></span><br><span class="line">	<span class="type">int</span> major; <span class="comment">/* 主设备号 */</span></span><br><span class="line">	<span class="type">int</span> minor; <span class="comment">/* 次设备号 */</span></span><br><span class="line">};</span><br><span class="line"><span class="type">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">newchrled_dev</span> <span class="title">newchrled</span>;</span> <span class="comment">/* led 设备 */</span></span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">led_open</span><span class="params">(<span class="keyword">struct</span> inode *inode, <span class="keyword">struct</span> file *filp)</span></span><br><span class="line">{</span><br><span class="line"> filp-&gt;private_data = &amp;newchrled; <span class="comment">/* 设置私有数据 */</span></span><br><span class="line"> <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"><span class="type">static</span> <span class="type">int</span> __init <span class="title function_">led_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line"> u32 val;</span><br><span class="line"> <span class="type">int</span> ret;</span><br><span class="line"> ...</span><br><span class="line"><span class="comment">/* 7.注册字符设备驱动 */</span></span><br><span class="line"> <span class="comment">/* 创建设备号 */</span></span><br><span class="line"> <span class="keyword">if</span> (newchrled.major) {</span><br><span class="line"> newchrled.devid = MKDEV(newchrled.major, <span class="number">0</span>);</span><br><span class="line"> ret = register_chrdev_region(newchrled.devid, NEWCHRLED_CNT,CHRLED_NAME);</span><br><span class="line"> <span class="keyword">if</span> (ret)</span><br><span class="line"> <span class="keyword">goto</span> out1;</span><br><span class="line"> } <span class="keyword">else</span> {</span><br><span class="line"> ret = alloc_chrdev_region(&amp;newchrled.devid, <span class="number">0</span>, NEWCHRLED_CNT,NEWCHRLED_NAME);</span><br><span class="line"> <span class="keyword">if</span> (ret)</span><br><span class="line"> <span class="keyword">goto</span> out1;</span><br><span class="line"></span><br><span class="line"> newchrled.major = MAJOR(newchrled.devid);</span><br><span class="line"> newchrled.minor = MINOR(newchrled.devid);</span><br><span class="line"> }</span><br><span class="line"></span><br><span class="line"> printk(<span class="string">"newcheled major=%d,minor=%d\r\n"</span>,newchrled.major,newchrled.minor);</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 初始化 cdev */</span></span><br><span class="line"> newchrled.cdev.owner = THIS_MODULE;</span><br><span class="line"> cdev_init(&amp;newchrled.cdev, &amp;newchrled_fops);</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 添加一个 cdev */</span></span><br><span class="line"> ret = cdev_add(&amp;newchrled.cdev, newchrled.devid, NEWCHRLED_CNT);</span><br><span class="line"> <span class="keyword">if</span> (ret)</span><br><span class="line"> <span class="keyword">goto</span> out2;</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 创建类 */</span></span><br><span class="line"> newchrled.class = class_create(THIS_MODULE, NEWCHRLED_NAME);</span><br><span class="line"> <span class="keyword">if</span> (IS_ERR(newchrled.class)) {</span><br><span class="line"> ret = PTR_ERR(newchrled.class);</span><br><span class="line"> <span class="keyword">goto</span> out3;</span><br><span class="line"> }</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 创建设备 */</span></span><br><span class="line"> newchrled.device = device_create(newchrled.class, <span class="literal">NULL</span>,</span><br><span class="line"> newchrled.devid, <span class="literal">NULL</span>, NEWCHRLED_NAME);</span><br><span class="line"> <span class="keyword">if</span> (IS_ERR(newchrled.device)) {</span><br><span class="line"> ret = PTR_ERR(newchrled.device);</span><br><span class="line"> <span class="keyword">goto</span> out4;</span><br><span class="line"> }</span><br><span class="line"></span><br><span class="line"> <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">out4:</span><br><span class="line"> class_destroy(newchrled.class);</span><br><span class="line">out3:</span><br><span class="line"> cdev_del(&amp;newchrled.cdev);</span><br><span class="line">out2:</span><br><span class="line"> unregister_chrdev_region(newchrled.devid, NEWCHRLED_CNT);</span><br><span class="line">out1:</span><br><span class="line"> led_iounmap();</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> ret;</span><br><span class="line">}</span><br><span class="line"><span class="type">static</span> <span class="type">void</span> __exit <span class="title function_">led_exit</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line"> <span class="comment">/* 注销设备 */</span></span><br><span class="line"> device_destroy(newchrled.class, newchrled.devid);</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 注销类 */</span></span><br><span class="line"> class_destroy(newchrled.class);</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 删除 cdev */</span></span><br><span class="line"> cdev_del(&amp;newchrled.cdev);</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 注销设备号 */</span></span><br><span class="line"> unregister_chrdev_region(newchrled.devid, NEWCHRLED_CNT);</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 取消地址映射 */</span></span><br><span class="line"> led_iounmap();</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>驱动中的倒退式处理方法</strong> :出现错误后使用goto跳转来恢复之前的操作。</p>
+<p>编译：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">KERN_DIR := 内核地址</span><br><span class="line"></span><br><span class="line">obj-m := newchrled.o</span><br><span class="line"></span><br><span class="line"><span class="section">all:</span></span><br><span class="line"> make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -C <span class="variable">$(KERN_DIR)</span> M=`pwd` modules</span><br><span class="line"></span><br><span class="line"><span class="section">clean:</span></span><br><span class="line"> make -C <span class="variable">$(KERN_DIR)</span> M=`pwd` clean</span><br></pre></td></tr></table></figure>
+
+<p>使用make命令编译。</p>
+<p>加载驱动：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Depmod //第一次加载驱动的时候需要运行此命令</span><br><span class="line">modprobe newchrled.ko //加载驱动</span><br><span class="line">rmmod newchrled.ko //卸载驱动</span><br></pre></td></tr></table></figure>
+
+<h2 id="基于设备树的驱动开发"><a href="#基于设备树的驱动开发" class="headerlink" title="基于设备树的驱动开发"></a>基于设备树的驱动开发</h2><p>基于设备树的开发，就是将硬件信息写到设备树中，驱动只需要通过函数获取设备树信息，就不需要将寄存器地址之类的写到驱动中。</p>
+<h3 id="添加设备树"><a href="#添加设备树" class="headerlink" title="添加设备树"></a>添加设备树</h3><p>想设备树根节点中添加以下节点：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">led {</span><br><span class="line"> compatible = "zynq,led";</span><br><span class="line"> status = "okay";</span><br><span class="line"> default-state = "on";</span><br><span class="line"></span><br><span class="line"> reg = &lt;0xE000A040 0x4</span><br><span class="line"> 0xE000A204 0x4</span><br><span class="line"> 0xE000A208 0x4</span><br><span class="line"> 0xE000A214 0x4</span><br><span class="line"> 0xF800012C 0x4</span><br><span class="line"> &gt;;</span><br><span class="line"> };</span><br></pre></td></tr></table></figure>
+
+<p>这里主要是添加了5个相关寄存器地址。</p>
+<p>添加到Linux系统中，可以进入到/proc/device-tree/目录中查看是否有“ led”这个节点。</p>
+<h3 id="驱动编写"><a href="#驱动编写" class="headerlink" title="驱动编写"></a>驱动编写</h3><p>  驱动在之前的基础上进行设置，给出不同的部分：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/* dtsled 设备结构体 */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">dtsled_dev</span> {</span></span><br><span class="line"> <span class="type">dev_t</span> devid; <span class="comment">/* 设备号 */</span></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> <span class="title">cdev</span>;</span> <span class="comment">/* cdev */</span></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="keyword">class</span> *<span class="keyword">class</span>;</span> <span class="comment">/* 类 */</span></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">device</span> *<span class="title">device</span>;</span> <span class="comment">/* 设备 */</span></span><br><span class="line"> <span class="type">int</span> major; <span class="comment">/* 主设备号 */</span></span><br><span class="line"> <span class="type">int</span> minor; <span class="comment">/* 次设备号 */</span></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">device_node</span> *<span class="title">nd</span>;</span> <span class="comment">/* 设备节点 */</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">dtsled_dev</span> <span class="title">dtsled</span>;</span> <span class="comment">/* led 设备 */</span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">led_ioremap</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line"> data_addr = of_iomap(dtsled.nd, <span class="number">0</span>);</span><br><span class="line"> dirm_addr = of_iomap(dtsled.nd, <span class="number">1</span>);</span><br><span class="line"> outen_addr = of_iomap(dtsled.nd, <span class="number">2</span>);</span><br><span class="line"> intdis_addr = of_iomap(dtsled.nd, <span class="number">3</span>);</span><br><span class="line"> aper_clk_ctrl_addr = of_iomap(dtsled.nd, <span class="number">4</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> __init <span class="title function_">led_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line"> <span class="type">const</span> <span class="type">char</span> *str;</span><br><span class="line"> u32 val;</span><br><span class="line"> <span class="type">int</span> ret;</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 1.获取 led 设备节点 */</span></span><br><span class="line"> dtsled.nd = of_find_node_by_path(<span class="string">"/led"</span>);</span><br><span class="line"> <span class="keyword">if</span>(<span class="literal">NULL</span> == dtsled.nd) {</span><br><span class="line"> printk(KERN_ERR <span class="string">"led node can not found!\r\n"</span>);</span><br><span class="line"> <span class="keyword">return</span> -EINVAL;</span><br><span class="line"> }</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 2.读取 status 属性 */</span></span><br><span class="line"> ret = of_property_read_string(dtsled.nd, <span class="string">"status"</span>, &amp;str);</span><br><span class="line"> <span class="keyword">if</span>(!ret) {</span><br><span class="line"> <span class="keyword">if</span> (<span class="built_in">strcmp</span>(str, <span class="string">"okay"</span>))</span><br><span class="line"> <span class="keyword">return</span> -EINVAL;</span><br><span class="line"> }</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 2、获取 compatible 属性值并进行匹配 */</span></span><br><span class="line"> ret = of_property_read_string(dtsled.nd, <span class="string">"compatible"</span>, &amp;str);</span><br><span class="line"> <span class="keyword">if</span>(<span class="number">0</span> &gt; ret)</span><br><span class="line"> <span class="keyword">return</span> -EINVAL;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">if</span> (<span class="built_in">strcmp</span>(str, <span class="string">"alientek,led"</span>))</span><br><span class="line"> <span class="keyword">return</span> -EINVAL;</span><br><span class="line"></span><br><span class="line"> printk(KERN_ERR <span class="string">"led device matching successful!\r\n"</span>);</span><br><span class="line"><span class="comment">/* 4.寄存器地址映射 */</span></span><br><span class="line"> led_ioremap();</span><br><span class="line"><span class="comment">/* 5.使能 GPIO 时钟 */</span></span><br><span class="line"><span class="comment">/* 6.关闭中断功能 */</span></span><br><span class="line"><span class="comment">/* 7.设置 GPIO 为输出功能 */</span></span><br><span class="line"><span class="comment">/* 8.使能 GPIO 输出功能 */</span></span><br><span class="line"><span class="comment">/* 9.初始化 LED 的默认状态 */</span></span><br><span class="line"> val = readl(data_addr);</span><br><span class="line"></span><br><span class="line"> ret = of_property_read_string(dtsled.nd, <span class="string">"default-state"</span>, &amp;str);</span><br><span class="line"> <span class="keyword">if</span>(!ret) {</span><br><span class="line"> <span class="keyword">if</span> (!<span class="built_in">strcmp</span>(str, <span class="string">"on"</span>))</span><br><span class="line"> val |= (<span class="number">0x1</span>U &lt;&lt; <span class="number">7</span>);</span><br><span class="line"> <span class="keyword">else</span></span><br><span class="line"> val &amp;= ~(<span class="number">0x1</span>U &lt;&lt; <span class="number">7</span>);</span><br><span class="line"> } <span class="keyword">else</span></span><br><span class="line"> val &amp;= ~(<span class="number">0x1</span>U &lt;&lt; <span class="number">7</span>);</span><br><span class="line"></span><br><span class="line"> writel(val, data_addr);</span><br><span class="line"><span class="comment">/* 10.注册字符设备驱动 */</span></span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<p>使用 of_iomap 函数替换之前使用 ioremap 函数来实现物理地址到虚拟地址的映射，它能够直接解析给定节点的 reg 属性，并将 reg 属性中存放的物理地址和长度进行映射，使用不同的下标依次对 reg 数组中记录的不同组“物理地址-长度” 地址空间进行映射。  </p>
+<h2 id="其他函数的介绍"><a href="#其他函数的介绍" class="headerlink" title="其他函数的介绍"></a>其他函数的介绍</h2><h3 id="printk函数"><a href="#printk函数" class="headerlink" title="printk函数"></a>printk函数</h3><p>在linux内核送使用printk进行输出而不是printf。printk 可以根据日志级别对消息进行分类，一共有 8 个消息级别，这 8 个消息级别定义在文件<code>include/linux/kern_levels.h</code>里面  ：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> KERN_SOH <span class="string">"\001"</span> <span class="comment">/* ASCII Start Of Header */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERN_SOH_ASCII <span class="string">'\001'</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERN_EMERG KERN_SOH <span class="string">"0"</span> <span class="comment">/* system is unusable */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERN_ALERT KERN_SOH <span class="string">"1"</span> <span class="comment">/* action must be taken immediately */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERN_CRIT KERN_SOH <span class="string">"2"</span> <span class="comment">/* critical conditions */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERN_ERR KERN_SOH <span class="string">"3"</span> <span class="comment">/* error conditions */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERN_WARNING KERN_SOH <span class="string">"4"</span> <span class="comment">/* warning conditions */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERN_NOTICE KERN_SOH <span class="string">"5"</span> <span class="comment">/* normal but significant condition */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERN_INFO KERN_SOH <span class="string">"6"</span> <span class="comment">/* informational */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERN_DEBUG KERN_SOH <span class="string">"7"</span> <span class="comment">/* debug-level messages */</span></span></span><br></pre></td></tr></table></figure>
+
+<p>一共定义了 8 个级别，其中 0 的优先级最高， 7 的优先级最低。如果要设置消息级别，参考如下示例：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">printk(KERN_EMERG "gsmi: Log Shutdown Reason\n");//消息级别为KERN_EMERG</span><br></pre></td></tr></table></figure>
+
+<p>默认级别可以设置(CONFIG_MESSAGE_LOGLEVEL_DEFAULT  )，默认为4。同时还有<code>CONSOLE_LOGLEVEL_DEFAULT  </code>控制哪些消息可以显示在控制台上，默认为 7，意味着只有优先级高于 7 的消息才能显示在控制台上 。</p>
+<h3 id="copy-to-user"><a href="#copy-to-user" class="headerlink" title="copy_to_user"></a>copy_to_user</h3><p>内核空间的数据和用户空间的数据是分开的，想要向用户传参，需要调用函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">long</span> <span class="title function_">copy_to_user</span><span class="params">(<span class="type">void</span> __user *to, <span class="type">const</span> <span class="type">void</span> *from, <span class="type">unsigned</span> <span class="type">long</span> n)</span></span><br></pre></td></tr></table></figure>
+
+<p>参数 to 表示目的，参数 from 表示源，参数 n 表示要复制的数据长度。如果复制成功，返回值为 0，如果复制失败则返回负数。  </p>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/31845/">https://lostacnet.top/post/31845/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91"><span class="toc-number">1.</span> <span class="toc-text">ZYNQ学习笔记-字符设备驱动开发</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%8F%E8%BF%B0%E9%A9%B1%E5%8A%A8%E6%93%8D%E4%BD%9C%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">1.1.</span> <span class="toc-text">描述驱动操作的数据结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E5%BC%80%E5%8F%91%E6%AD%A5%E9%AA%A4"><span class="toc-number">1.2.</span> <span class="toc-text">字符设备开发步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A9%B1%E5%8A%A8%E5%8A%A0%E8%BD%BD%E5%92%8C%E5%8D%B8%E8%BD%BD"><span class="toc-number">1.2.1.</span> <span class="toc-text">驱动加载和卸载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E7%9A%84%E6%B3%A8%E5%86%8C%E4%B8%8E%E6%B3%A8%E9%94%80"><span class="toc-number">1.2.2.</span> <span class="toc-text">字符设备的注册与注销</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E7%9A%84%E5%85%B7%E4%BD%93%E6%93%8D%E4%BD%9C"><span class="toc-number">1.2.3.</span> <span class="toc-text">设备的具体操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E7%9A%84LICENSE%E5%92%8C%E4%BD%9C%E8%80%85%E4%BF%A1%E6%81%AF"><span class="toc-number">1.2.4.</span> <span class="toc-text">设备的LICENSE和作者信息</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Linux%E8%AE%BE%E5%A4%87%E5%8F%B7"><span class="toc-number">1.3.</span> <span class="toc-text">Linux设备号</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BA%94%E7%94%A8%E6%93%8D%E4%BD%9C%E5%87%BD%E6%95%B0"><span class="toc-number">1.4.</span> <span class="toc-text">应用操作函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#LED%E9%A9%B1%E5%8A%A8%E7%9A%84%E5%BC%80%E5%8F%91"><span class="toc-number">1.5.</span> <span class="toc-text">LED驱动的开发</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E7%9A%84%E9%A9%B1%E5%8A%A8%E5%8E%9F%E7%90%86"><span class="toc-number">1.5.1.</span> <span class="toc-text">基本的驱动原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84%E4%B8%8E%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80"><span class="toc-number">1.5.2.</span> <span class="toc-text">地址映射与虚拟地址</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#IO%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E5%87%BD%E6%95%B0"><span class="toc-number">1.5.3.</span> <span class="toc-text">IO内存访问函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#GPIO%E7%9A%84%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-number">1.5.4.</span> <span class="toc-text">GPIO的寄存器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LED%E9%A9%B1%E5%8A%A8%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81"><span class="toc-number">1.5.5.</span> <span class="toc-text">LED驱动示例代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E5%92%8C%E8%BF%90%E8%A1%8C"><span class="toc-number">1.5.6.</span> <span class="toc-text">编译和运行</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B0%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87"><span class="toc-number">1.6.</span> <span class="toc-text">新字符设备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B0%E7%9A%84%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E6%B3%A8%E5%86%8C%E6%96%B9%E6%B3%95"><span class="toc-number">1.6.1.</span> <span class="toc-text">新的字符设备注册方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E6%96%87%E4%BB%B6%E7%9A%84%E7%A7%81%E6%9C%89%E6%95%B0%E6%8D%AE"><span class="toc-number">1.6.2.</span> <span class="toc-text">使用文件的私有数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%8A%A8%E5%88%9B%E5%BB%BA%E8%AE%BE%E5%A4%87%E8%8A%82%E7%82%B9"><span class="toc-number">1.6.3.</span> <span class="toc-text">自动创建设备节点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E6%96%B0API%E7%9A%84%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.6.4.</span> <span class="toc-text">使用新API的代码示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E8%AE%BE%E5%A4%87%E6%A0%91%E7%9A%84%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91"><span class="toc-number">1.7.</span> <span class="toc-text">基于设备树的驱动开发</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E8%AE%BE%E5%A4%87%E6%A0%91"><span class="toc-number">1.7.1.</span> <span class="toc-text">添加设备树</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A9%B1%E5%8A%A8%E7%BC%96%E5%86%99"><span class="toc-number">1.7.2.</span> <span class="toc-text">驱动编写</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E5%87%BD%E6%95%B0%E7%9A%84%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.8.</span> <span class="toc-text">其他函数的介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#printk%E5%87%BD%E6%95%B0"><span class="toc-number">1.8.1.</span> <span class="toc-text">printk函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#copy-to-user"><span class="toc-number">1.8.2.</span> <span class="toc-text">copy_to_user</span></a></li></ol></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>

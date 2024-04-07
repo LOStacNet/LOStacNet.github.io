@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>ZYNQ学习笔记-Win下基于WSL的嵌入式Linux开发环境搭建 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="ZYNQ学习笔记-Win下基于WSL的嵌入式Linux开发环境搭建由于常规在虚拟机上编写嵌入式Linux驱动非常麻烦，而且还没有代码提示，这里给出一种在Win下利用WSL搭建的开发环境。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ZYNQ学习笔记-Win下基于WSL的嵌入式Linux开发环境搭建">
+<meta property="og:url" content="https://lostacnet.top/post/4646/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="ZYNQ学习笔记-Win下基于WSL的嵌入式Linux开发环境搭建由于常规在虚拟机上编写嵌入式Linux驱动非常麻烦，而且还没有代码提示，这里给出一种在Win下利用WSL搭建的开发环境。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-04-06T14:46:37.000Z">
+<meta property="article:modified_time" content="2024-04-07T10:18:48.487Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="ZYNQ">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="WSL">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            ZYNQ学习笔记-Win下基于WSL的嵌入式Linux开发环境搭建
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/4646/" class="article-date">
+	  <time datetime="2024-04-06T14:46:37.000Z" itemprop="datePublished">4月 6</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">ZYNQ学习笔记</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/Linux/" rel="tag">Linux</a>, <a class="article-tag-none-link" href="/tags/WSL/" rel="tag">WSL</a>, <a class="article-tag-none-link" href="/tags/ZYNQ/" rel="tag">ZYNQ</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/4646/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 2.2k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 10(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="ZYNQ学习笔记-Win下基于WSL的嵌入式Linux开发环境搭建"><a href="#ZYNQ学习笔记-Win下基于WSL的嵌入式Linux开发环境搭建" class="headerlink" title="ZYNQ学习笔记-Win下基于WSL的嵌入式Linux开发环境搭建"></a>ZYNQ学习笔记-Win下基于WSL的嵌入式Linux开发环境搭建</h1><p>由于常规在虚拟机上编写嵌入式Linux驱动非常麻烦，而且还没有代码提示，这里给出一种在Win下利用WSL搭建的开发环境。</p>
+<span id="more"></span>
+
+<h2 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h2><h3 id="安装WSL2"><a href="#安装WSL2" class="headerlink" title="安装WSL2"></a>安装WSL2</h3><p>首先需要开启WSL功能，并且需要是<strong>WSL2</strong>，网上教程很多，这里不再多说。</p>
+<h3 id="安装交叉编译链"><a href="#安装交叉编译链" class="headerlink" title="安装交叉编译链"></a>安装交叉编译链</h3><p>然后需要安装Linux交叉编译器，使用如下命令安装：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install gcc-arm-linux-gnueabihf</span><br></pre></td></tr></table></figure>
+
+<p>安装完成后使用如下命令检验：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">arm-linux-gnueabihf-gcc -v</span><br></pre></td></tr></table></figure>
+
+<h3 id="编译linux内核源码"><a href="#编译linux内核源码" class="headerlink" title="编译linux内核源码"></a>编译linux内核源码</h3><p>驱动编写需要引用内核中的源码，这里需要下载xilinx-linux内核源码。对于petalinux来说，在<code>build/tmp/work-shared/plnx-zynq7/kernel-source</code>下，复制文件夹到便于使用的位置。</p>
+<p>或者直接到github复制，注意版本需要与实际使用的一致：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone --depth 1 git@github.com:Xilinx/linux-xlnx.git</span><br></pre></td></tr></table></figure>
+
+<p>下载完成后，使用ZYNQ的配置编译源码。这里使用的是Xilinx 官方的 ZYNQ ZC702 EVK 开发板的配置，由于我们只需要一些BSP无关的生成文件，因此这里直接用就行。</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">make ARCH=arm xilinx_zynq_defconfig</span><br><span class="line">make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j12</span><br></pre></td></tr></table></figure>
+
+<p>ARCH指定架构，CROSS_COMPILE指定编译器，-j12指定编译使用12核心。</p>
+<h2 id="编译测试"><a href="#编译测试" class="headerlink" title="编译测试"></a>编译测试</h2><p>这里编译一个LED驱动进行测试。</p>
+<h3 id="源码准备"><a href="#源码准备" class="headerlink" title="源码准备"></a>源码准备</h3><p>新建一个文件夹，创建并编写一个简单的字符程序<code>myled.c</code>，这里不多说了。</p>
+<p>然后编写测试app。</p>
+<p>源码在最后附录。</p>
+<h3 id="Makefile文件"><a href="#Makefile文件" class="headerlink" title="Makefile文件"></a>Makefile文件</h3><p>这里需要使用make moudule功能，在上面的文件夹中创建一个<code>Makefile</code>文件，填写以下内容：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">KDIR := /home/lo/kernel-source <span class="comment">#内核源码目录</span></span><br><span class="line"></span><br><span class="line">obj-m	:= led.o</span><br><span class="line"></span><br><span class="line"><span class="section">all:</span></span><br><span class="line">	make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -C <span class="variable">$(KDIR)</span> M=`pwd` modules</span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">	make -C <span class="variable">$(KDIR)</span> M=`pwd` clean</span><br></pre></td></tr></table></figure>
+
+<p>编写完成后直接<code>make</code>进行编译，得到.ko文件。</p>
+<p>使用<code>make clean</code>清除编译产生的文件。</p>
+<p>app编译即可：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">arm-linux-gnueabihf-gcc ledapp.c -o ledapp</span><br></pre></td></tr></table></figure>
+
+<h3 id="复制文件"><a href="#复制文件" class="headerlink" title="复制文件"></a>复制文件</h3><p>使用scp命令将两个文件复制到开发板中，并进行测试。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scp led.ko ledapp root@192.168.2.138:/home/root/test</span><br></pre></td></tr></table></figure>
+
+<p>加载：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">insmod led.ko</span><br></pre></td></tr></table></figure>
+
+<p>由于驱动中有自动创建节点的代码，因此不需要mknod。</p>
+<p>进行测试:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./ledapp /dev/gpioled0 1 //点亮 LED 灯</span><br><span class="line">./ledapp /dev/gpioled0 0 //关闭 LED 灯</span><br></pre></td></tr></table></figure>
+
+<p>卸载驱动：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rmmod led.ko</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用CLion"><a href="#使用CLion" class="headerlink" title="使用CLion"></a>使用CLion</h2><p>首先注意一点，Clion使用CMake进行工程构建，而linux内核源码使用Make，不能直接使用，因此这里只能查看代码不能编译。</p>
+<h3 id="Clion连接WSL"><a href="#Clion连接WSL" class="headerlink" title="Clion连接WSL"></a>Clion连接WSL</h3><p>打开Clion，点击远程开发中的WSL。</p>
+<p>点击连接到主机，选择使用的WSL实例(仅支持WSL2)。根据设置安装好对应WSl上的Clion版本，进行安装，Clion会自动进行，安装完成后选择项目目录打开。</p>
+<p>此时应该会提示项目未设置。</p>
+<h3 id="创建CMake"><a href="#创建CMake" class="headerlink" title="创建CMake"></a>创建CMake</h3><p>创建CMakeLists.txt文件，并编写内容：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">cmake_minimum_required</span>(VERSION <span class="number">3.26</span>)<span class="comment"># Clion自动生成</span></span><br><span class="line"><span class="keyword">project</span>(cliondev C)<span class="comment"># Clion自动生成</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(CMAKE_C_STANDARD <span class="number">99</span>)<span class="comment"># Clion自动生成，修改为C99</span></span><br><span class="line"><span class="keyword">set</span>(CMAKE_C_COMPILER <span class="string">"arm-linux-gnueabihf-gcc"</span>)</span><br><span class="line"><span class="keyword">set</span>(KERNEL_DIR <span class="string">"/home/lo/kernel-source"</span>) <span class="comment">#设置内核目录</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">include_directories</span>(<span class="string">"${KERNEL_DIR}/include"</span>)</span><br><span class="line"><span class="keyword">include_directories</span>(<span class="string">"${KERNEL_DIR}/include/uapi"</span>)</span><br><span class="line"><span class="keyword">include_directories</span>(<span class="string">"${KERNEL_DIR}/include/generated"</span>)</span><br><span class="line"><span class="keyword">include_directories</span>(<span class="string">"${KERNEL_DIR}/arch/arm/include"</span>)</span><br><span class="line"><span class="keyword">include_directories</span>(<span class="string">"${KERNEL_DIR}/arch/arm/include/uapi"</span>)</span><br><span class="line"><span class="keyword">include_directories</span>(<span class="string">"${KERNEL_DIR}/arch/arm/include/generated"</span>)</span><br><span class="line"><span class="keyword">include_directories</span>(<span class="string">"${KERNEL_DIR}/arch/arm/include/generated/uapi"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_definitions</span>(-D__KERNEL__)</span><br><span class="line"><span class="comment">#add_compile_options("-includeautoconf.h")</span></span><br><span class="line"><span class="keyword">add_executable</span>(cliondev</span><br><span class="line">        led.c)<span class="comment"># Clion自动生成</span></span><br></pre></td></tr></table></figure>
+
+<p>根据实际修改上面的内核目录。</p>
+<p>之后重新加载目录，即可发现代码提示，可以愉快的开始编写了。</p>
+<h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><p>Clion不能直接编译驱动，使用之前的Makefile脚本进行编译。</p>
+<p>打开左下角终端，可以直接打开wsl的终端，在目录下输入make指令即可。</p>
+<p>当然也可以使用CLion的脚本运行，在右上角配置中添加make脚本，直接运行即可(还可以将scp命令也添加到脚本中，实现编译后自动复制到开发板)。</p>
+<h2 id="使用Vscode"><a href="#使用Vscode" class="headerlink" title="使用Vscode"></a>使用Vscode</h2><p>主要注意需要在设置文件中添加上面Cmake中写的头文件和定义，这里不多说了。</p>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p><code>led.c</code>:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/kernel.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/delay.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/ide.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/init.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/module.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/errno.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/gpio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;asm/mach/map.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/uaccess.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;asm/io.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/cdev.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/of.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/of_address.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/of_gpio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOLED_CNT 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOLED_NAME <span class="string">"gpioled0"</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* dtsled 设备结构体 */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">gpioled_dev</span> {</span></span><br><span class="line">	<span class="type">dev_t</span> devid; <span class="comment">/* 设备号 */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> <span class="title">cdev</span>;</span> <span class="comment">/* cdev */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="keyword">class</span> *<span class="keyword">class</span>;</span> <span class="comment">/* 类 */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">device</span> *<span class="title">device</span>;</span> <span class="comment">/* 设备 */</span></span><br><span class="line">	<span class="type">int</span> major; <span class="comment">/* 主设备号 */</span></span><br><span class="line">	<span class="type">int</span> minor; <span class="comment">/* 次设备号 */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">device_node</span> *<span class="title">nd</span>;</span> <span class="comment">/* 设备节点 */</span></span><br><span class="line">	<span class="type">int</span> led_gpio; <span class="comment">/* LED 所使用的 GPIO 编号 */</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">gpioled_dev</span> <span class="title">gpioled</span>;</span> <span class="comment">/* led 设备 */</span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">led_open</span><span class="params">(<span class="keyword">struct</span> inode *inode, <span class="keyword">struct</span> file *filp)</span></span><br><span class="line">{</span><br><span class="line">	filp-&gt;private_data = &amp;gpioled; <span class="comment">/* 设置私有数据 */</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">ssize_t</span> <span class="title function_">led_read</span><span class="params">(<span class="keyword">struct</span> file *filp, <span class="type">char</span> __user *buf,<span class="type">size_t</span> cnt, <span class="type">loff_t</span> *offt)</span></span><br><span class="line">{</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">ssize_t</span> <span class="title function_">led_write</span><span class="params">(<span class="keyword">struct</span> file *filp, <span class="type">const</span> <span class="type">char</span> __user *buf,<span class="type">size_t</span> cnt, <span class="type">loff_t</span> *offt)</span></span><br><span class="line">{</span><br><span class="line">	<span class="type">int</span> ret;</span><br><span class="line">	<span class="type">char</span> kern_buf[<span class="number">1</span>];</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">gpioled_dev</span>* <span class="title">pgpioled</span>=</span>(<span class="keyword">struct</span> gpioled_dev*)filp-&gt;private_data;</span><br><span class="line"></span><br><span class="line">	ret = copy_from_user(kern_buf, buf, cnt); <span class="comment">// 得到应用层传递过来的数据</span></span><br><span class="line">	<span class="keyword">if</span>(<span class="number">0</span> &gt; ret) {</span><br><span class="line">		printk(KERN_ERR <span class="string">"kernel write failed!\r\n"</span>);</span><br><span class="line">		<span class="keyword">return</span> -EFAULT;</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (<span class="number">0</span> == kern_buf[<span class="number">0</span>])</span><br><span class="line">		gpio_set_value(pgpioled-&gt;led_gpio, <span class="number">0</span>); <span class="comment">// 如果传递过来的数据是 0 则关闭 led</span></span><br><span class="line">	<span class="keyword">else</span> <span class="keyword">if</span> (<span class="number">1</span> == kern_buf[<span class="number">0</span>])</span><br><span class="line">		gpio_set_value(pgpioled-&gt;led_gpio, <span class="number">1</span>); <span class="comment">// 如果传递过来的数据是 1 则点亮 led</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">led_release</span><span class="params">(<span class="keyword">struct</span> inode *inode, <span class="keyword">struct</span> file *filp)</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 设备操作函数 */</span></span><br><span class="line"><span class="type">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> <span class="title">gpioled_fops</span> =</span> {</span><br><span class="line">.owner = THIS_MODULE,</span><br><span class="line">.open = led_open,</span><br><span class="line">.read = led_read,</span><br><span class="line">.write = led_write,</span><br><span class="line">.release = led_release,</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> __init <span class="title function_">led_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line">	<span class="type">const</span> <span class="type">char</span> *str;</span><br><span class="line">	<span class="type">int</span> ret;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 1.获取 led 设备节点 */</span></span><br><span class="line">	gpioled.nd = of_find_node_by_path(<span class="string">"/leds/led0"</span>);</span><br><span class="line">	<span class="keyword">if</span>(<span class="literal">NULL</span> == gpioled.nd) {</span><br><span class="line">		printk(KERN_ERR <span class="string">"gpioled: Failed to get /led node\n"</span>);</span><br><span class="line">		<span class="keyword">return</span> -EINVAL;</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 2.读取 status 属性 */</span></span><br><span class="line">	ret = of_property_read_string(gpioled.nd, <span class="string">"status"</span>, &amp;str);</span><br><span class="line">	<span class="keyword">if</span>(!ret) {</span><br><span class="line">		<span class="keyword">if</span> (<span class="built_in">strcmp</span>(str, <span class="string">"okay"</span>))</span><br><span class="line">			<span class="keyword">return</span> -EINVAL;</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 2、获取 label 属性值并进行匹配 */</span></span><br><span class="line">	ret = of_property_read_string(gpioled.nd, <span class="string">"label"</span>, &amp;str);</span><br><span class="line">	<span class="keyword">if</span>(<span class="number">0</span> &gt; ret) {</span><br><span class="line">		printk(KERN_ERR <span class="string">"gpioled: Failed to get compatible property\n"</span>);</span><br><span class="line">		<span class="keyword">return</span> ret;</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (<span class="built_in">strcmp</span>(str, <span class="string">"ps_led"</span>)) {</span><br><span class="line">		printk(KERN_ERR <span class="string">"gpioled: Compatible match failed\n"</span>);</span><br><span class="line">		<span class="keyword">return</span> -EINVAL;</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	printk(KERN_INFO <span class="string">"gpioled: device matching successful!\r\n"</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 4.获取设备树中的 led-gpio 属性，得到 LED 所使用的 GPIO 编号 */</span></span><br><span class="line">	gpioled.led_gpio = of_get_named_gpio(gpioled.nd, <span class="string">"led-gpio"</span>, <span class="number">0</span>);</span><br><span class="line">	<span class="keyword">if</span>(!gpio_is_valid(gpioled.led_gpio)) {</span><br><span class="line">		printk(KERN_ERR <span class="string">"gpioled: Failed to get led-gpio\n"</span>);</span><br><span class="line">		<span class="keyword">return</span> -EINVAL;</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	printk(KERN_INFO <span class="string">"gpioled: led-gpio num = %d\r\n"</span>, gpioled.led_gpio);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 5.向 gpio 子系统申请使用 GPIO */</span></span><br><span class="line">	ret = gpio_request(gpioled.led_gpio, <span class="string">"LED-GPIO"</span>);</span><br><span class="line">	<span class="keyword">if</span> (ret) {</span><br><span class="line">		printk(KERN_ERR <span class="string">"gpioled: Failed to request led-gpio\n"</span>);</span><br><span class="line">		<span class="keyword">return</span> ret;</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 6.将 led gpio 管脚设置为输出模式 */</span></span><br><span class="line">	gpio_direction_output(gpioled.led_gpio, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 7.初始化 LED 的默认状态 */</span></span><br><span class="line">	ret = of_property_read_string(gpioled.nd, <span class="string">"default-state"</span>, &amp;str);</span><br><span class="line">	<span class="keyword">if</span>(!ret) {</span><br><span class="line">		<span class="keyword">if</span> (!<span class="built_in">strcmp</span>(str, <span class="string">"on"</span>))</span><br><span class="line">			gpio_set_value(gpioled.led_gpio, <span class="number">1</span>);</span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">			gpio_set_value(gpioled.led_gpio, <span class="number">0</span>);</span><br><span class="line">	} <span class="keyword">else</span></span><br><span class="line">		gpio_set_value(gpioled.led_gpio, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 8.注册字符设备驱动 */</span></span><br><span class="line">	<span class="comment">/* 创建设备号 */</span></span><br><span class="line">	<span class="keyword">if</span> (gpioled.major) {</span><br><span class="line">		gpioled.devid = MKDEV(gpioled.major, <span class="number">0</span>);</span><br><span class="line">		ret = register_chrdev_region(gpioled.devid, GPIOLED_CNT, GPIOLED_NAME);</span><br><span class="line">		<span class="keyword">if</span> (ret)</span><br><span class="line">			<span class="keyword">goto</span> out1;</span><br><span class="line">	} <span class="keyword">else</span> {</span><br><span class="line">		ret = alloc_chrdev_region(&amp;gpioled.devid, <span class="number">0</span>, GPIOLED_CNT, GPIOLED_NAME);</span><br><span class="line">		<span class="keyword">if</span> (ret)</span><br><span class="line">			<span class="keyword">goto</span> out1;</span><br><span class="line"></span><br><span class="line">		gpioled.major = MAJOR(gpioled.devid);</span><br><span class="line">		gpioled.minor = MINOR(gpioled.devid);</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	printk(<span class="string">"gpioled: major=%d,minor=%d\r\n"</span>,gpioled.major, gpioled.minor);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 初始化 cdev */</span></span><br><span class="line">	gpioled.cdev.owner = THIS_MODULE;</span><br><span class="line">	cdev_init(&amp;gpioled.cdev, &amp;gpioled_fops);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 添加一个 cdev */</span></span><br><span class="line">	ret = cdev_add(&amp;gpioled.cdev, gpioled.devid, GPIOLED_CNT);</span><br><span class="line">	<span class="keyword">if</span> (ret)</span><br><span class="line">		<span class="keyword">goto</span> out2;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 创建类 */</span></span><br><span class="line">	gpioled.class = class_create(THIS_MODULE, GPIOLED_NAME);</span><br><span class="line">	<span class="keyword">if</span> (IS_ERR(gpioled.class)) {</span><br><span class="line">		ret = PTR_ERR(gpioled.class);</span><br><span class="line">		<span class="keyword">goto</span> out3;</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 创建设备 */</span></span><br><span class="line">	gpioled.device = device_create(gpioled.class, <span class="literal">NULL</span>,</span><br><span class="line">	gpioled.devid, <span class="literal">NULL</span>, GPIOLED_NAME);</span><br><span class="line">	<span class="keyword">if</span> (IS_ERR(gpioled.device)) {</span><br><span class="line">		ret = PTR_ERR(gpioled.device);</span><br><span class="line">		<span class="keyword">goto</span> out4;</span><br><span class="line">	}</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">out4:</span><br><span class="line">	class_destroy(gpioled.class);</span><br><span class="line"></span><br><span class="line">out3:</span><br><span class="line">	cdev_del(&amp;gpioled.cdev);</span><br><span class="line"></span><br><span class="line">out2:</span><br><span class="line">	unregister_chrdev_region(gpioled.devid, GPIOLED_CNT);</span><br><span class="line"></span><br><span class="line">out1:</span><br><span class="line">	gpio_free(gpioled.led_gpio);</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> ret;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> __exit <span class="title function_">led_exit</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line">	<span class="comment">/* 注销设备 */</span></span><br><span class="line">	device_destroy(gpioled.class, gpioled.devid);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 注销类 */</span></span><br><span class="line">	class_destroy(gpioled.class);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 删除 cdev */</span></span><br><span class="line">	cdev_del(&amp;gpioled.cdev);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 注销设备号 */</span></span><br><span class="line">	unregister_chrdev_region(gpioled.devid, GPIOLED_CNT);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 释放 GPIO */</span></span><br><span class="line">	gpio_free(gpioled.led_gpio);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 驱动模块入口和出口函数注册 */</span></span><br><span class="line">module_init(led_init);</span><br><span class="line">module_exit(led_exit);</span><br><span class="line"></span><br><span class="line">MODULE_AUTHOR(<span class="string">"LO"</span>);</span><br><span class="line">MODULE_DESCRIPTION(<span class="string">"LO ZYNQ GPIO LED Driver"</span>);</span><br><span class="line">MODULE_LICENSE(<span class="string">"GPL"</span>);</span><br></pre></td></tr></table></figure>
+
+<p><code>ledapp.c</code>:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* @description : main 主程序</span></span><br><span class="line"><span class="comment">* @param - argc : argv 数组元素个数</span></span><br><span class="line"><span class="comment">* @param - argv : 具体参数</span></span><br><span class="line"><span class="comment">* @return : 0 成功;其他 失败</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span></span><br><span class="line">{</span><br><span class="line"><span class="type">int</span> fd, ret;</span><br><span class="line"><span class="type">unsigned</span> <span class="type">char</span> buf[<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(<span class="number">3</span> != argc) {</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"Usage:\n"</span></span><br><span class="line"><span class="string">"\t./ledApp /dev/led 1 @ close LED\n"</span></span><br><span class="line"><span class="string">"\t./ledApp /dev/led 0 @ open LED\n"</span></span><br><span class="line">);</span><br><span class="line"><span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 打开设备 */</span></span><br><span class="line">fd = open(argv[<span class="number">1</span>], O_RDWR);</span><br><span class="line"><span class="keyword">if</span>(<span class="number">0</span> &gt; fd) {</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"file %s open failed!\r\n"</span>, argv[<span class="number">1</span>]);</span><br><span class="line"><span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 将字符串转换为 int 型数据 */</span></span><br><span class="line">buf[<span class="number">0</span>] = atoi(argv[<span class="number">2</span>]);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 向驱动写入数据 */</span></span><br><span class="line">ret = write(fd, buf, <span class="keyword">sizeof</span>(buf));</span><br><span class="line"><span class="keyword">if</span>(<span class="number">0</span> &gt; ret){</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"LED Control Failed!\r\n"</span>);</span><br><span class="line">close(fd);</span><br><span class="line"><span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 关闭设备 */</span></span><br><span class="line">close(fd);</span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<p>本次使用的设备树：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">/include/ "system-conf.dtsi"</span><br><span class="line">#include &lt;dt-bindings/gpio/gpio.h&gt;</span><br><span class="line">#include "dt-bindings/gpio/gpio.h"</span><br><span class="line">#include "dt-bindings/input/linux-event-codes.h"</span><br><span class="line">/{</span><br><span class="line">	model = "BX71 Development Board";</span><br><span class="line"></span><br><span class="line">	leds {</span><br><span class="line">		compatible = "gpio-leds";</span><br><span class="line">		led0 {</span><br><span class="line">                        label = "ps_led";</span><br><span class="line">                        led-gpio = &lt;&amp;gpio0 0 GPIO_ACTIVE_HIGH&gt;;</span><br><span class="line">                        default-state = "off";</span><br><span class="line">		};</span><br><span class="line">		led1 {</span><br><span class="line">			label = "pl_led0";</span><br><span class="line">			led-gpio = &lt;&amp;gpio0 54 GPIO_ACTIVE_HIGH&gt;;</span><br><span class="line">			default-state = "off";</span><br><span class="line">		};</span><br><span class="line">	};</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	keys {</span><br><span class="line">		compatible = "gpio-keys";</span><br><span class="line">		autorepeat;</span><br><span class="line">		key0 {</span><br><span class="line">			label = "ps_key";</span><br><span class="line">			gpios = &lt;&amp;gpio0 47 GPIO_ACTIVE_LOW&gt;;</span><br><span class="line">			linux,code = &lt;KEY_UP&gt;;</span><br><span class="line">			debounce-interval = &lt;15&gt;;</span><br><span class="line">		};</span><br><span class="line">	</span><br><span class="line">		key1 {</span><br><span class="line">			label = "pl_key";</span><br><span class="line">			gpios = &lt;&amp;gpio0 55 GPIO_ACTIVE_LOW&gt;;</span><br><span class="line">			linux,code = &lt;KEY_DOWN&gt;;</span><br><span class="line">			debounce-interval = &lt;15&gt;;</span><br><span class="line">		};</span><br><span class="line">	</span><br><span class="line">	};</span><br><span class="line">	usb_phy0: phy0@e0002000 {</span><br><span class="line">		compatible = "ulpi-phy";</span><br><span class="line">		#phy-cells = &lt;0&gt;;</span><br><span class="line">		reg = &lt;0xe0002000 0x1000&gt;;</span><br><span class="line">		view-port = &lt;0x0170&gt;;</span><br><span class="line">		drv-vbus;</span><br><span class="line">	};</span><br><span class="line"></span><br><span class="line">};</span><br><span class="line">&amp;usb0 {</span><br><span class="line">	dr_mode = "otg";</span><br><span class="line">	usb-phy = &lt;&amp;usb_phy0&gt;;</span><br><span class="line">};</span><br><span class="line">&amp;gem0 {</span><br><span class="line">	local-mac-address = [00 0a 35 00 11 55];</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">&amp;phy0 {</span><br><span class="line">	reg = &lt;0x5&gt;;</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/4646/">https://lostacnet.top/post/4646/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Win%E4%B8%8B%E5%9F%BA%E4%BA%8EWSL%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8FLinux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-number">1.</span> <span class="toc-text">ZYNQ学习笔记-Win下基于WSL的嵌入式Linux开发环境搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E4%BE%9D%E8%B5%96"><span class="toc-number">1.1.</span> <span class="toc-text">安装依赖</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85WSL2"><span class="toc-number">1.1.1.</span> <span class="toc-text">安装WSL2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91%E9%93%BE"><span class="toc-number">1.1.2.</span> <span class="toc-text">安装交叉编译链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91linux%E5%86%85%E6%A0%B8%E6%BA%90%E7%A0%81"><span class="toc-number">1.1.3.</span> <span class="toc-text">编译linux内核源码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E6%B5%8B%E8%AF%95"><span class="toc-number">1.2.</span> <span class="toc-text">编译测试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E5%87%86%E5%A4%87"><span class="toc-number">1.2.1.</span> <span class="toc-text">源码准备</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Makefile%E6%96%87%E4%BB%B6"><span class="toc-number">1.2.2.</span> <span class="toc-text">Makefile文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%8D%E5%88%B6%E6%96%87%E4%BB%B6"><span class="toc-number">1.2.3.</span> <span class="toc-text">复制文件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8CLion"><span class="toc-number">1.3.</span> <span class="toc-text">使用CLion</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Clion%E8%BF%9E%E6%8E%A5WSL"><span class="toc-number">1.3.1.</span> <span class="toc-text">Clion连接WSL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BACMake"><span class="toc-number">1.3.2.</span> <span class="toc-text">创建CMake</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91"><span class="toc-number">1.3.3.</span> <span class="toc-text">编译</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8Vscode"><span class="toc-number">1.4.</span> <span class="toc-text">使用Vscode</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95"><span class="toc-number">1.5.</span> <span class="toc-text">附录</span></a></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
