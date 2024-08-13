@@ -11,19 +11,19 @@
 <meta property="og:site_name" content="LO_StacNet的火柴盒">
 <meta property="og:description" content="ZYNQ学习笔记-Petalinux环境搭建Xilinx官方为ZYNQ编译Linux相关程序提供了一个集成工具Petalinux，利用它，用户可以快速编译在ZYNQ上运行的Linux和应用。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240316145228094.png">
-<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240315210447985.png">
-<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240315211106348.png">
-<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240315211251487.png">
-<meta property="og:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240315212110275.png">
+<meta property="og:image" content="https://s21.ax1x.com/2024/08/03/pkjhiTJ.png">
+<meta property="og:image" content="https://s21.ax1x.com/2024/08/03/pkjhkk9.png">
+<meta property="og:image" content="https://s21.ax1x.com/2024/08/03/pkjhAYR.png">
+<meta property="og:image" content="https://s21.ax1x.com/2024/08/03/pkjhEf1.png">
+<meta property="og:image" content="https://s21.ax1x.com/2024/08/03/pkjhZSx.png">
 <meta property="article:published_time" content="2024-03-12T13:20:03.000Z">
-<meta property="article:modified_time" content="2024-03-16T08:36:38.778Z">
+<meta property="article:modified_time" content="2024-08-03T14:05:13.714Z">
 <meta property="article:author" content="LO_StacNet">
 <meta property="article:tag" content="ZYNQ">
 <meta property="article:tag" content="Linux">
 <meta property="article:tag" content="WSL">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://lostacnet.top/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240316145228094.png">
+<meta name="twitter:image" content="https://s21.ax1x.com/2024/08/03/pkjhiTJ.png">
 
     
     <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
@@ -351,7 +351,7 @@ mjx-container[display="true"] + br {
 <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>开始我使用了2018.3版本的petalinux以配合我的vivado，但是发现WSL最老是18.04.6，而2018.3版本的petalinux只能到16.因此要么升级petalinux，要么降级ubuntu，这里由于wsl不能降级，最后选择了升级到2019.1，安装步骤只有版本号不同，其他一样。然而后来发现2019.1的只支持vivado2019.1到出的工程，因此最后只能无奈安装低版本的ubuntu。这里留下原教程，以供参考。</p>
 <h2 id="下载安装文件"><a href="#下载安装文件" class="headerlink" title="下载安装文件"></a>下载安装文件</h2><p>这里需要准备<a target="_blank" rel="noopener" href="http://old-releases.ubuntu.com/releases/16.04.4/">ubuntu-16.04.4-desktop-amd64.iso</a>  和petalinux-v2018.3-final-installer.run。</p>
 <p>之后安装ubuntu虚拟机–这里需要设置如下：</p>
-<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240316145228094.png" alt="image-20240316145228094"></p>
+<p><img src="https://s21.ax1x.com/2024/08/03/pkjhiTJ.png" alt="image-20240316145228094"></p>
 <p>需要共享USB。最少需要50g的磁盘空间。</p>
 <h2 id="安装VMware-Tool"><a href="#安装VMware-Tool" class="headerlink" title="安装VMware Tool"></a>安装VMware Tool</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/williamcsj/article/details/121019391">参考教程</a></p>
 <h2 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h2><p>输入以下命令安装：</p>
@@ -411,15 +411,15 @@ mjx-container[display="true"] + br {
 <p>安装完成后，输入以下命令查看USB设备：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">usbipd list</span><br></pre></td></tr></table></figure>
 
-<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240315210447985.png" alt="image-20240315210447985"></p>
+<p><img src="https://s21.ax1x.com/2024/08/03/pkjhkk9.png" alt="image-20240315210447985"></p>
 <p>我电脑上的设备如上，5-1是串口，5-2就是Jtag。</p>
 <p>之后根据BUSID，输入命令允许共享设备——这需要管理员身份启动：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">usbipd bind --busid 5-2</span><br></pre></td></tr></table></figure>
 
-<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240315211106348.png" alt="image-20240315211106348"></p>
+<p><img src="https://s21.ax1x.com/2024/08/03/pkjhAYR.png" alt="image-20240315211106348"></p>
 <p>注意需要将WSL升级到最新版。</p>
 <p>之后在WSL中输入<code>lsusb</code>即可查看设备。</p>
-<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240315211251487.png" alt="image-20240315211251487"></p>
+<p><img src="https://s21.ax1x.com/2024/08/03/pkjhEf1.png" alt="image-20240315211251487"></p>
 <p>可以看到ID是一样的。</p>
 <p>如果想要取消连接，可以使用以下命令：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">usbipd detach --busid &lt;busid&gt;</span><br></pre></td></tr></table></figure>
@@ -431,7 +431,7 @@ mjx-container[display="true"] + br {
 <p>运行该目录下的文件：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo ./install_drivers</span><br></pre></td></tr></table></figure>
 
-<p><img src="/ZYNQ%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-Petalinux%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/image-20240315212110275.png" alt="image-20240315212110275"></p>
+<p><img src="https://s21.ax1x.com/2024/08/03/pkjhZSx.png" alt="image-20240315212110275"></p>
 <p>安装完成。</p>
 <p>如果驱动遇到问题，可以使用下面的命令删除驱动：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo rm -f /etc/udev/rules.d/52-xilinx-digilent-usb.rules</span><br><span class="line">sudo rm -f /etc/udev/rules.d/52-xilinx-ftdi-usb.rules</span><br><span class="line">sudo rm -f /etc/udev/rules.d/52-xilinx-pcusb.rules</span><br></pre></td></tr></table></figure>

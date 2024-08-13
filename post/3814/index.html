@@ -11,17 +11,17 @@
 <meta property="og:site_name" content="LO_StacNet的火柴盒">
 <meta property="og:description" content="STM32学习笔记-CortexM3的函数跳转STM32F1是CortexM3内核，这里记录一下其函数跳转与中断跳转中的寄存器与堆栈变换情况。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://lostacnet.top/STM32%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-CortexM3%E7%9A%84%E5%87%BD%E6%95%B0%E8%B7%B3%E8%BD%AC/image-20240308203057070.png">
-<meta property="og:image" content="https://lostacnet.top/STM32%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-CortexM3%E7%9A%84%E5%87%BD%E6%95%B0%E8%B7%B3%E8%BD%AC/image-20240308203247182.png">
-<meta property="og:image" content="https://lostacnet.top/STM32%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-CortexM3%E7%9A%84%E5%87%BD%E6%95%B0%E8%B7%B3%E8%BD%AC/image-20240308205855773.png">
+<meta property="og:image" content="https://s21.ax1x.com/2024/08/03/pkjhpOU.png">
+<meta property="og:image" content="https://s21.ax1x.com/2024/08/03/pkjhCmF.png">
+<meta property="og:image" content="https://s21.ax1x.com/2024/08/03/pkjhPw4.png">
 <meta property="article:published_time" content="2024-03-08T12:14:09.000Z">
-<meta property="article:modified_time" content="2024-03-09T18:44:04.082Z">
+<meta property="article:modified_time" content="2024-08-03T14:04:20.447Z">
 <meta property="article:author" content="LO_StacNet">
 <meta property="article:tag" content="中断">
 <meta property="article:tag" content="堆栈">
 <meta property="article:tag" content="STM32">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://lostacnet.top/STM32%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-CortexM3%E7%9A%84%E5%87%BD%E6%95%B0%E8%B7%B3%E8%BD%AC/image-20240308203057070.png">
+<meta name="twitter:image" content="https://s21.ax1x.com/2024/08/03/pkjhpOU.png">
 
     
     <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
@@ -347,16 +347,16 @@ mjx-container[display="true"] + br {
 <span id="more"></span>
 
 <h2 id="CortexM3的寄存器和堆栈"><a href="#CortexM3的寄存器和堆栈" class="headerlink" title="CortexM3的寄存器和堆栈"></a>CortexM3的寄存器和堆栈</h2><p>首先，得知道M3各个寄存器。</p>
-<p><img src="/STM32%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-CortexM3%E7%9A%84%E5%87%BD%E6%95%B0%E8%B7%B3%E8%BD%AC/image-20240308203057070.png" alt="image-20240308203057070"></p>
+<p><img src="https://s21.ax1x.com/2024/08/03/pkjhpOU.png" alt="image-20240308203057070"></p>
 <p>这里主要需要关注R13栈堆寄存器(保存堆栈地址)，R14连接寄存器(储存跳转前地址)，R15程序计数寄存器(指向下一条要执行的指令地址)。</p>
 <p>除此之外还有一些特殊功能寄存器。只能被MSR、MRS指令访问。</p>
-<p><img src="/STM32%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-CortexM3%E7%9A%84%E5%87%BD%E6%95%B0%E8%B7%B3%E8%BD%AC/image-20240308203247182.png" alt="image-20240308203247182"></p>
+<p><img src="https://s21.ax1x.com/2024/08/03/pkjhCmF.png" alt="image-20240308203247182"></p>
 <p>这里只需要关注xPSR寄存器(储存程序状态)，CONTROL寄存器（主要是其控制堆栈指针的功能）。</p>
 <h3 id="SP栈指针"><a href="#SP栈指针" class="headerlink" title="SP栈指针"></a>SP栈指针</h3><p>SP指针指向的是栈的地址，最开始指向栈底，使用压栈出栈指令的时候会自动进行管理地址的增减。栈堆一个很重要的作用就是在跳转中<strong>储存寄存器的值</strong>。</p>
 <blockquote>
 <p>堆栈的 PUSH 与 POP </p>
 <p>堆栈是一种存储器的使用模型。它由一块连续的内存和一个栈顶指针组成，用于实 现“后进先出”的缓冲区。其最典型的应用，就是在数据处理前先保存寄存器的值，再 在处理任务完成后从中恢复先前保护的这些值。</p>
-<p><img src="/STM32%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-CortexM3%E7%9A%84%E5%87%BD%E6%95%B0%E8%B7%B3%E8%BD%AC/image-20240308205855773.png" alt="image-20240308205855773"></p>
+<p><img src="https://s21.ax1x.com/2024/08/03/pkjhPw4.png" alt="image-20240308205855773"></p>
 <p>在执行 PUSH 和 POP 操作时，那个通常被称为 SP 的地址寄存器，会由硬件自动调整它的值，以避免后续操作破坏先前的数据。</p>
 </blockquote>
 <p>栈寄存器分为**MSP(主栈)和PSP(线程栈)**，由CONTROL寄存器决定。系统复位后或处于处理模式时为MSP。MSP初地址在向量表的第一项。同一时间SP只能读到一个栈，但可以通过MRS/MSR 指令来指名道姓地访问具体的堆栈指针。</p>
