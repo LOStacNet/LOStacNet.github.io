@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>ESP-IDF学习笔记-驱动SIQ-02FVS3编码器 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="ESP-IDF学习笔记-驱动SIQ-02FVS3编码器SIQ-02FVS3是一款小体积的拨轮滚轮旋转编码器开关，同时具有按钮和编码器的功能且体积较小，但是比较昂贵。本文记录使用ESP-IDF驱动该编码器开关的过程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ESP-IDF学习笔记-驱动SIQ-02FVS3编码器">
+<meta property="og:url" content="https://lostacnet.top/post/81306/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="ESP-IDF学习笔记-驱动SIQ-02FVS3编码器SIQ-02FVS3是一款小体积的拨轮滚轮旋转编码器开关，同时具有按钮和编码器的功能且体积较小，但是比较昂贵。本文记录使用ESP-IDF驱动该编码器开关的过程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s21.ax1x.com/2024/08/15/pA948GF.png">
+<meta property="og:image" content="https://s21.ax1x.com/2024/08/15/pA94G24.png">
+<meta property="og:image" content="https://s21.ax1x.com/2024/08/15/pA94JxJ.png">
+<meta property="article:published_time" content="2024-08-13T13:06:26.000Z">
+<meta property="article:modified_time" content="2024-08-15T07:50:09.003Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="ESP-IDF">
+<meta property="article:tag" content="ESP32">
+<meta property="article:tag" content="编码器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s21.ax1x.com/2024/08/15/pA948GF.png">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            ESP-IDF学习笔记-驱动SIQ-02FVS3编码器
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/81306/" class="article-date">
+	  <time datetime="2024-08-13T13:06:26.000Z" itemprop="datePublished">8月 13</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/ESP32%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">ESP32学习笔记</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/ESP-IDF/" rel="tag">ESP-IDF</a>, <a class="article-tag-none-link" href="/tags/ESP32/" rel="tag">ESP32</a>, <a class="article-tag-none-link" href="/tags/%E7%BC%96%E7%A0%81%E5%99%A8/" rel="tag">编码器</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/81306/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 1.9k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 8(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="ESP-IDF学习笔记-驱动SIQ-02FVS3编码器"><a href="#ESP-IDF学习笔记-驱动SIQ-02FVS3编码器" class="headerlink" title="ESP-IDF学习笔记-驱动SIQ-02FVS3编码器"></a>ESP-IDF学习笔记-驱动SIQ-02FVS3编码器</h1><p>SIQ-02FVS3是一款小体积的拨轮滚轮旋转编码器开关，同时具有按钮和编码器的功能且体积较小，但是比较昂贵。本文记录使用ESP-IDF驱动该编码器开关的过程。</p>
+<span id="more"></span>
+
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a target="_blank" rel="noopener" href="https://item.szlcsc.com/3244962.html">数据手册</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/believe666/article/details/123635445">ESP32驱动编码器–SIQ-02FVS3 （Vscode + IDF)</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.espressif.com/projects/esp-idf/zh_CN/v5.1.4/esp32c3/api-reference/peripherals/gptimer.html">IDF通用定时器使用</a></p>
+<h2 id="硬件与环境"><a href="#硬件与环境" class="headerlink" title="硬件与环境"></a>硬件与环境</h2><ol>
+<li>硬件连接：A——IO2 | S——IO10 | C——GND | B——IO3</li>
+<li>软件环境：CLion+ESP-IDFv5.1.1</li>
+</ol>
+<h2 id="编码器电路结构与原理"><a href="#编码器电路结构与原理" class="headerlink" title="编码器电路结构与原理"></a>编码器电路结构与原理</h2><p>本次使用的编码器各引脚内部电路结构如下：</p>
+<p><img src="https://s21.ax1x.com/2024/08/15/pA948GF.png" alt="image-20240814150941250"></p>
+<p>可见，当编码器工作时，A，B，S端会与C端连接，由于此时C端接地，因此我们需要将A，B，S端的引脚<strong>拉高到高电平</strong>才能正常使用。</p>
+<p>当编码器旋转时，输出波形如下：<br><img src="https://s21.ax1x.com/2024/08/15/pA94G24.png" alt="image-20240814151801395"></p>
+<p>可见，当旋转方向不同时，AB两端上升沿到来的先后不同。当从CW方向转动的时候，A的波形上升沿比B波形的上升沿快，具体快多少，这里数据手册给出24±3°，当从CCW方向转动的这个时候恰好相反，B的相位上升沿快于A的上升沿。这样可以通过捕获上升沿的顺序来判断编码器的方向。</p>
+<h2 id="程序思路"><a href="#程序思路" class="headerlink" title="程序思路"></a>程序思路</h2><h3 id="编码器读取"><a href="#编码器读取" class="headerlink" title="编码器读取"></a>编码器读取</h3><p>根据以上原理，我们可以使用以下方法读取编码器：</p>
+<ol>
+<li>检测A上升沿，在A上升时检测B的状态，或相反。</li>
+<li>检测AB上升沿，判断先后顺序。</li>
+<li>检测A的边缘，通过连续两次边缘时AB的状态来判断方向。</li>
+</ol>
+<p>在STM32中，有定时器有专门的模式来读取编码器，但是ESP32没有，因此考虑使用GPIO中断来实现。但是引入中断会出现一个问题，由于没有硬件滤波，很容易出现毛刺多次触发中断，还好ESP32内置<strong>硬件毛刺滤波器</strong>，可以过滤毛刺。</p>
+<p>为减少毛刺的干扰，这这里使用方法三进行读取。将A端口设置为双边缘中断触发，利用状态机，检测连续的两个边缘的AB电平，这样就可以判断一些不正常的输出。这样可以在较简单代码下去除一些毛刺。</p>
+<p>可能的正常结果如下：</p>
+<ol>
+<li>A1=1,B1=0,A2=0,B2=1——CW方向</li>
+<li>A1=1,B1=1,A2=0,B2=0——CCW方向</li>
+<li>A1=0,B1=1,A2=1,B2=0——CW方向</li>
+<li>A1=0,B1=0,A2=1,B2=1——CCW方向</li>
+<li>其余情况为无效情况</li>
+</ol>
+<h3 id="按键实现"><a href="#按键实现" class="headerlink" title="按键实现"></a>按键实现</h3><p>对编码器按键实现长按短按检测，这里考虑使用一个按键状态机。</p>
+<p>设置一个定时器，每100ms读取一次按键并进行状态转移，状态转移图如下：</p>
+<p><img src="https://s21.ax1x.com/2024/08/15/pA94JxJ.png" alt="image-20240815102429267"></p>
+<ol>
+<li>按下时触发，可在进入KEY_DOWN时执行。</li>
+<li>松开时触发，可在从KEY_DOWN到IDLE时进行。</li>
+<li>长按，可在进入KET_LONG时进行。</li>
+</ol>
+<h2 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h2><h3 id="使用的数据结构"><a href="#使用的数据结构" class="headerlink" title="使用的数据结构"></a>使用的数据结构</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> ENCODER_A_PIN 2</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ENCODER_B_PIN 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ENCODER_S_PIN 10</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span> {</span></span><br><span class="line">    ENCODER_NONE=<span class="number">0</span>, <span class="comment">/* no event */</span></span><br><span class="line">    ENCODER_CW,     <span class="comment">/* revolve in CW dir */</span></span><br><span class="line">    ENCODER_CCW,    <span class="comment">/* revolve in CCW dir */</span></span><br><span class="line">    ENCODER_SW_DOWN,   <span class="comment">/* bottom is pressed */</span></span><br><span class="line">    ENCODER_SW_LONG   <span class="comment">/* bottom is long pressed */</span></span><br><span class="line">}Encoder_Event;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span>{</span></span><br><span class="line">    KEY_STATUS_IDLE,     <span class="comment">/* IDLE */</span></span><br><span class="line">    KEY_STATUS_PRESSED,  <span class="comment">/* detect press,wait to confirm */</span></span><br><span class="line">    KEY_STATUS_DOWN,     <span class="comment">/* Key down confirmed */</span></span><br><span class="line">    KEY_STATUS_LONG      <span class="comment">/* Key long down */</span></span><br><span class="line">}KEY_Status;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">uint8_t</span> key_count=<span class="number">0</span>;<span class="comment">//conut to 10 before next status</span></span><br><span class="line"><span class="type">static</span> KEY_Status key_status=KEY_STATUS_IDLE;</span><br><span class="line"><span class="type">static</span> <span class="type">gptimer_handle_t</span> key_timer;</span><br><span class="line"><span class="type">static</span> QueueHandle_t encoder_gpio_event_queue=<span class="literal">NULL</span>;<span class="comment">//Use for msg from ISR</span></span><br><span class="line"><span class="type">static</span> <span class="type">uint8_t</span> edgecount=<span class="number">0</span>,as1,as2,bs1,bs2;<span class="comment">//statues of A and B in two check</span></span><br><span class="line"><span class="type">static</span> <span class="type">gpio_glitch_filter_handle_t</span> gpiofilter_S,gpiofilter_A,gpiofilter_B;</span><br></pre></td></tr></table></figure>
+
+<h3 id="中断函数"><a href="#中断函数" class="headerlink" title="中断函数"></a>中断函数</h3><p>需要两个中断函数，一个是给编码器判断方向使用的GPIO中断，一个是给按键使用的定时器中断。</p>
+<p><strong>GPIO中断</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * the dir interrupt function</span></span><br><span class="line"><span class="comment"> * @param arg</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> IRAM_ATTR <span class="title function_">gpio_isr_handler</span><span class="params">(<span class="type">void</span>* arg)</span></span><br><span class="line">{</span><br><span class="line"><span class="comment">//    uint32_t gpio_num = (uint32_t) arg;//not use</span></span><br><span class="line">    Encoder_Event msg;<span class="comment">//result msg</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(edgecount==<span class="number">0</span>){<span class="comment">//first edge</span></span><br><span class="line">        bs1= gpio_get_level(ENCODER_B_PIN);</span><br><span class="line">        as1= gpio_get_level(ENCODER_A_PIN);</span><br><span class="line">        edgecount=<span class="number">1</span>;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">else</span>{</span><br><span class="line">        bs2= gpio_get_level(ENCODER_B_PIN);</span><br><span class="line">        as2= gpio_get_level(ENCODER_A_PIN);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>((as1==<span class="number">1</span> &amp;&amp; bs1==<span class="number">0</span> &amp;&amp; as2==<span class="number">0</span> &amp;&amp; bs2==<span class="number">1</span>) || (as1==<span class="number">0</span> &amp;&amp; bs1==<span class="number">1</span> &amp;&amp; as2==<span class="number">1</span> &amp;&amp; bs2==<span class="number">0</span>)){</span><br><span class="line">            msg=ENCODER_CW;</span><br><span class="line">            xQueueOverwriteFromISR(encoder_gpio_event_queue,&amp;msg,<span class="literal">NULL</span>);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span>((as1==<span class="number">1</span> &amp;&amp; bs1==<span class="number">1</span> &amp;&amp; as2==<span class="number">0</span> &amp;&amp; bs2==<span class="number">0</span>) || (as1==<span class="number">0</span> &amp;&amp; bs1==<span class="number">0</span> &amp;&amp; as2==<span class="number">1</span> &amp;&amp; bs2==<span class="number">1</span>)){</span><br><span class="line">            msg=ENCODER_CCW;</span><br><span class="line">            xQueueOverwriteFromISR(encoder_gpio_event_queue,&amp;msg,<span class="literal">NULL</span>);</span><br><span class="line">        }</span><br><span class="line">        edgecount=<span class="number">0</span>;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<p>该中断使用<code>IRAM_ATTR</code>放到RAM中，加快执行速度。通过<code>edgecount</code>变量判断捕获到第几个上升沿。判断后通过<code>xQueueOverwriteFromISR()</code>函数向事件队列覆写传输<code>Encoder_Event</code>类型的数据。关于FreeRTOS队列的用法这里不细说了，网上有很多教程，这里需要注意：1.中断中使用<code>FromISR</code>后缀的函数；2.<code>xQueueOverwrite</code>只能对长度为1的队列使用。</p>
+<p><strong>按键定时器中断</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">bool</span> <span class="title function_">key_timer_cb</span><span class="params">(<span class="type">gptimer_handle_t</span> timer, <span class="type">const</span> <span class="type">gptimer_alarm_event_data_t</span> *edata, <span class="type">void</span> *user_ctx)</span></span><br><span class="line">{</span><br><span class="line">    BaseType_t high_task_awoken = pdFALSE;</span><br><span class="line">    <span class="type">uint8_t</span> key_read;</span><br><span class="line">    Encoder_Event msg;</span><br><span class="line"></span><br><span class="line">    key_read= !gpio_get_level(ENCODER_S_PIN);<span class="comment">//active low</span></span><br><span class="line">    <span class="keyword">switch</span> (key_status) {</span><br><span class="line">        <span class="keyword">case</span> KEY_STATUS_IDLE:</span><br><span class="line">            <span class="keyword">if</span>(key_read){</span><br><span class="line">                key_status=KEY_STATUS_PRESSED;</span><br><span class="line">            }</span><br><span class="line">            <span class="keyword">else</span> {</span><br><span class="line">                key_status = KEY_STATUS_IDLE;</span><br><span class="line">            }</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> KEY_STATUS_PRESSED:</span><br><span class="line">            <span class="keyword">if</span>(key_read){</span><br><span class="line">                key_status=KEY_STATUS_DOWN;</span><br><span class="line">            }<span class="keyword">else</span>{</span><br><span class="line">                key_status=KEY_STATUS_IDLE;</span><br><span class="line">            }</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> KEY_STATUS_DOWN:</span><br><span class="line">            <span class="keyword">if</span>(key_read){</span><br><span class="line">                key_count++;</span><br><span class="line">                <span class="keyword">if</span>(key_count==<span class="number">10</span>){<span class="comment">//active key long down event</span></span><br><span class="line">                    key_count=<span class="number">0</span>;</span><br><span class="line">                    key_status=KEY_STATUS_LONG;</span><br><span class="line">                    msg=ENCODER_SW_LONG;</span><br><span class="line">                    xQueueOverwriteFromISR(encoder_gpio_event_queue,&amp;msg,&amp;high_task_awoken);</span><br><span class="line">                } <span class="keyword">else</span>{</span><br><span class="line">                    key_status=KEY_STATUS_DOWN;</span><br><span class="line">                }</span><br><span class="line">            } <span class="keyword">else</span>{<span class="comment">//active key down event when realise</span></span><br><span class="line">                key_status=KEY_STATUS_IDLE;</span><br><span class="line">                msg=ENCODER_SW_DOWN;</span><br><span class="line">                xQueueOverwriteFromISR(encoder_gpio_event_queue,&amp;msg,&amp;high_task_awoken);</span><br><span class="line">            }</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> KEY_STATUS_LONG:</span><br><span class="line">            <span class="keyword">if</span>(key_read){</span><br><span class="line">                key_status=KEY_STATUS_LONG;</span><br><span class="line">            } <span class="keyword">else</span>{</span><br><span class="line">                key_status=KEY_STATUS_IDLE;</span><br><span class="line">            }</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> high_task_awoken==pdTRUE;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<p>该中断最主要是其中用switch语句实现的状态机。利用100ms一次的中断频率读取GPIO输入，同时做到了按键消抖、短按以及长按监测。最后将结果通过队列发送到读取函数。</p>
+<h3 id="初始化函数"><a href="#初始化函数" class="headerlink" title="初始化函数"></a>初始化函数</h3><p>初始化使用到的外设较多，代码比较长。</p>
+<p><strong>输入滤波器</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">gpio_pin_glitch_filter_config_t</span> filter;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*create gpio filter */</span></span><br><span class="line">filter.clk_src=GLITCH_FILTER_CLK_SRC_DEFAULT;</span><br><span class="line">filter.gpio_num=ENCODER_S_PIN;</span><br><span class="line">ret|= gpio_new_pin_glitch_filter(&amp;filter,&amp;gpiofilter_S);</span><br><span class="line">ret|= gpio_glitch_filter_enable(gpiofilter_S);</span><br><span class="line">filter.gpio_num=ENCODER_A_PIN;</span><br><span class="line">ret|= gpio_new_pin_glitch_filter(&amp;filter,&amp;gpiofilter_A);</span><br><span class="line">ret|= gpio_glitch_filter_enable(gpiofilter_A);</span><br><span class="line">filter.gpio_num=ENCODER_B_PIN;</span><br><span class="line">ret|= gpio_new_pin_glitch_filter(&amp;filter,&amp;gpiofilter_B);</span><br><span class="line">ret|= gpio_glitch_filter_enable(gpiofilter_B);</span><br></pre></td></tr></table></figure>
+
+<p>ESP32C3自带引脚毛刺滤波，滤除时间小于两个采样时钟的毛刺，使用起来比较简单，配置方法见以上代码。</p>
+<p><strong>引脚初始化</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*SW and B just input pull up,no interrupt */</span></span><br><span class="line">config.pin_bit_mask=(<span class="number">1ULL</span>&lt;&lt;ENCODER_S_PIN)|(<span class="number">1ULL</span>&lt;&lt;ENCODER_B_PIN);</span><br><span class="line">config.mode=GPIO_MODE_INPUT;</span><br><span class="line">config.intr_type=GPIO_INTR_DISABLE;</span><br><span class="line">config.pull_down_en=GPIO_PULLDOWN_DISABLE;</span><br><span class="line">config.pull_up_en=GPIO_PULLUP_ENABLE;</span><br><span class="line">ret|= gpio_config(&amp;config);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* input A have interrupt */</span></span><br><span class="line">config.pin_bit_mask=(<span class="number">1ULL</span>&lt;&lt;ENCODER_A_PIN);</span><br><span class="line">config.intr_type=GPIO_INTR_ANYEDGE;<span class="comment">//double edge</span></span><br><span class="line">ret|= gpio_config(&amp;config);</span><br></pre></td></tr></table></figure>
+
+<p>引脚初始化没什么好说的，主要注意设置A输入中断类型为双边沿且三个引脚<strong>全部上拉</strong>。</p>
+<p><strong>添加GPIO中断函数</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*install isr,not use gpio_isr_register(),for it will register a single handler for all pins*/</span></span><br><span class="line">ret|= gpio_install_isr_service(<span class="number">0</span>);</span><br><span class="line">ret|= gpio_isr_handler_add(ENCODER_A_PIN,gpio_isr_handler,(<span class="type">void</span>*)ENCODER_A_PIN);</span><br></pre></td></tr></table></figure>
+
+<p>好有一个<code>gpio_isr_register()</code>方法添加，不过那会将所有GPIO给一个中断，这里中断资源还充足，不需要使用该方法。</p>
+<p><strong>创建通用定时器中断</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*create timer and add interrupt*/</span></span><br><span class="line"><span class="type">gptimer_config_t</span> timer= {</span><br><span class="line">        .clk_src = GPTIMER_CLK_SRC_DEFAULT,</span><br><span class="line">        .direction=GPTIMER_COUNT_UP,</span><br><span class="line">        .resolution_hz=<span class="number">10000</span>,<span class="comment">//10000 Hz,1 tick =0.1 ms,must beyond  (80MHz/65535=)1221Hz.</span></span><br><span class="line">};</span><br><span class="line">ret|= gptimer_new_timer(&amp;timer,&amp;key_timer);</span><br><span class="line"><span class="type">gptimer_alarm_config_t</span> alarm_config={</span><br><span class="line">        .reload_count=<span class="number">0</span>,<span class="comment">//restart when alarm</span></span><br><span class="line">        .alarm_count=<span class="number">1000</span>,<span class="comment">//100ms in 10000Hz</span></span><br><span class="line">        .flags.auto_reload_on_alarm=<span class="literal">true</span>,<span class="comment">//enable auto-reload</span></span><br><span class="line">};</span><br><span class="line">ret|= gptimer_set_alarm_action(key_timer,&amp;alarm_config);</span><br><span class="line"><span class="type">gptimer_event_callbacks_t</span> cbs={</span><br><span class="line">        .on_alarm= key_timer_cb,<span class="comment">//key status manager</span></span><br><span class="line">};</span><br><span class="line">ret|= gptimer_register_event_callbacks(key_timer,&amp;cbs,<span class="literal">NULL</span>);</span><br><span class="line">ret|= gptimer_enable(key_timer);</span><br><span class="line">ret|= gptimer_start(key_timer);</span><br></pre></td></tr></table></figure>
+
+<p>这里就是简单定时器使用方法，但是要注意频率的设置。由于分频器为16位，最大分频数为65535，因此根据ESP32C3的主频设置，会有一个最低的计数频率，<strong>不要低于该值</strong>。</p>
+<p><strong>创建事件队列</strong></p>
+<p>考虑到任务同步，这里使用一个队列来传递信息。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*create the msg queue*/</span></span><br><span class="line">    encoder_gpio_event_queue= xQueueCreate(<span class="number">1</span>,<span class="keyword">sizeof</span>(Encoder_Event));<span class="comment">//length is 1,each element is Encoder_Event</span></span><br></pre></td></tr></table></figure>
+
+<p>要注意长度为1，以能够使用Overwrite覆写函数，提高实时性。</p>
+<h3 id="反初始化"><a href="#反初始化" class="headerlink" title="反初始化"></a>反初始化</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">encoder_deinit</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line">    <span class="comment">//del filter</span></span><br><span class="line">    gpio_glitch_filter_disable(gpiofilter_S);</span><br><span class="line">    gpio_del_glitch_filter(gpiofilter_S);</span><br><span class="line">    gpio_glitch_filter_disable(gpiofilter_A);</span><br><span class="line">    gpio_del_glitch_filter(gpiofilter_A);</span><br><span class="line">    gpio_glitch_filter_disable(gpiofilter_B);</span><br><span class="line">    gpio_del_glitch_filter(gpiofilter_B);</span><br><span class="line">    <span class="comment">//del timer</span></span><br><span class="line">    gptimer_stop(key_timer);</span><br><span class="line">    gptimer_disable(key_timer);</span><br><span class="line">    gptimer_del_timer(key_timer);</span><br><span class="line">    <span class="comment">//del isr</span></span><br><span class="line">    gpio_isr_handler_remove(ENCODER_A_PIN);</span><br><span class="line">    gpio_uninstall_isr_service();</span><br><span class="line">    <span class="comment">//del queue</span></span><br><span class="line">    vQueueDelete(encoder_gpio_event_queue);</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<h3 id="读取函数"><a href="#读取函数" class="headerlink" title="读取函数"></a>读取函数</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * read encoder</span></span><br><span class="line"><span class="comment"> * @param timeout time to wait,0 for no blocking</span></span><br><span class="line"><span class="comment"> * @return</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">Encoder_Event <span class="title function_">encoder_read</span><span class="params">(<span class="type">uint8_t</span> timeout)</span></span><br><span class="line">{</span><br><span class="line">    Encoder_Event ret;</span><br><span class="line">    <span class="keyword">if</span>(pdTRUE== xQueueReceive(encoder_gpio_event_queue,&amp;ret,timeout/portTICK_PERIOD_MS)){</span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    } <span class="keyword">else</span>{<span class="comment">//no msg in queue</span></span><br><span class="line">        <span class="keyword">return</span> ENCODER_NONE;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<p>直接调用队列读取，其中timeout可以为0，表示队列为空立刻返回，实现无阻塞。</p>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/81306/">https://lostacnet.top/post/81306/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ESP-IDF%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E9%A9%B1%E5%8A%A8SIQ-02FVS3%E7%BC%96%E7%A0%81%E5%99%A8"><span class="toc-number">1.</span> <span class="toc-text">ESP-IDF学习笔记-驱动SIQ-02FVS3编码器</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="toc-number">1.1.</span> <span class="toc-text">参考文章</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A1%AC%E4%BB%B6%E4%B8%8E%E7%8E%AF%E5%A2%83"><span class="toc-number">1.2.</span> <span class="toc-text">硬件与环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E7%A0%81%E5%99%A8%E7%94%B5%E8%B7%AF%E7%BB%93%E6%9E%84%E4%B8%8E%E5%8E%9F%E7%90%86"><span class="toc-number">1.3.</span> <span class="toc-text">编码器电路结构与原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A8%8B%E5%BA%8F%E6%80%9D%E8%B7%AF"><span class="toc-number">1.4.</span> <span class="toc-text">程序思路</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E7%A0%81%E5%99%A8%E8%AF%BB%E5%8F%96"><span class="toc-number">1.4.1.</span> <span class="toc-text">编码器读取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8C%89%E9%94%AE%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.4.2.</span> <span class="toc-text">按键实现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.5.</span> <span class="toc-text">代码实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">1.5.1.</span> <span class="toc-text">使用的数据结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E5%87%BD%E6%95%B0"><span class="toc-number">1.5.2.</span> <span class="toc-text">中断函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E5%87%BD%E6%95%B0"><span class="toc-number">1.5.3.</span> <span class="toc-text">初始化函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.5.4.</span> <span class="toc-text">反初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96%E5%87%BD%E6%95%B0"><span class="toc-number">1.5.5.</span> <span class="toc-text">读取函数</span></a></li></ol></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
