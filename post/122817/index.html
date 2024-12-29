@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html  lang="zh-CN" >
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <title>MC-frp映射搭建 | LO_StacNet的火柴盒</title>
+    <meta name="description" content="MC-frp映射搭建本篇使用Frp搭建了一个内网穿透，满足无公网的服务器的外网访问需求。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MC-frp映射搭建">
+<meta property="og:url" content="https://lostacnet.top/post/122817/">
+<meta property="og:site_name" content="LO_StacNet的火柴盒">
+<meta property="og:description" content="MC-frp映射搭建本篇使用Frp搭建了一个内网穿透，满足无公网的服务器的外网访问需求。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-12-28T08:17:48.000Z">
+<meta property="article:modified_time" content="2024-12-29T12:30:19.777Z">
+<meta property="article:author" content="LO_StacNet">
+<meta property="article:tag" content="网络">
+<meta property="article:tag" content="MC">
+<meta property="article:tag" content="frp">
+<meta name="twitter:card" content="summary">
+
+    
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    
+<link rel="stylesheet" href="/css/common.min.css">
+
+
+
+    
+        <link href="//cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link href="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/css/lightgallery.min.css" rel="stylesheet">
+    
+    
+    
+<link rel="stylesheet" href="/css/iconfont.min.css">
+
+    
+<meta name="generator" content="Hexo 6.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+    <body>
+        <header class="header header-fixture">
+    <div class="profile-search-wrap flex sm:block">
+        
+        
+        <div class="profile sm:text-center md:px-1 lg:px-3 sm:pb-4 sm:pt-6">
+            <a id="avatar" role="link" href="http://www.lostacnet.top" class="inline-block lg:w-16 lg:h-16 w-8 h-8 m-2" target="_blank" rel="noopener" rel="noreferrer" >
+                <img src="/images/avatar.jpg" class="rounded-full" alt="avatar">
+            </a>
+            <h2 id="name" class="hidden lg:block">LO_StacNet</h2>
+            <h3 id="title" class="hidden lg:block">电子玩家 &amp; 理想主义</h3>
+            
+            <small id="location" class="hidden lg:block">
+                <i class="iconfont icon-map-icon"></i>
+                Sichuan, China
+            </small>
+            
+        </div>
+        
+        
+<div class="search flex-1 flex lg:inline-block sm:hidden lg:px-4 lg:mt-2 lg:mb-4 lg:w-full">
+    <form id="search-form" class="my-auto flex-1 lg:border lg:border-solid lg:border-gray-200">
+        <div class="input-group table bg-gray-100 lg:bg-white w-full">
+            <input id="search-input" type="text" placeholder="搜索" class="inline-block w-full bg-gray-100 lg:bg-white p-1">
+            <span class="table-cell">
+                <button name="search tigger button" disabled>
+                    <i class="iconfont icon-search m-2"></i>
+                </button>
+            </span>
+        </div>
+    </form>
+        
+<div id="content-json" data-placeholder="搜索" class="invisible hidden">/content.json</div>
+<script id="search-teamplate" type="text/html" data-path="/content.json">
+    <div>
+        <div class="search-header bg-gray-400">
+            <input id="actual-search-input" model="keyword" ref="input" class="inline-block w-full h-10 px-2 py-1" placeholder="搜索" type="text">
+        </div>
+        <div class="search-result bg-gray-200">
+            {{#each searchPosts}}
+            <a href="/{{ path }}" class="result-item block px-2 pb-3 mb-1 pt-1 hover:bg-indigo-100">
+                <i class="iconfont icon-file"></i>
+                <h1 class="result-title inline font-medium text-lg">{{ title }}</h1>
+                <p class="result-content text-gray-600 text-sm">{{{ text }}}</p>
+            </a>
+            {{/each}}
+        </div>
+    </div>
+</script>
+
+</div>
+
+
+        <button name="menu toogle button" id="menu-toggle-btn" class="block sm:hidden p-3" role="button" aria-expanded="false">
+            <i class="iconfont icon-hamburger"></i>
+        </button>
+    </div>
+    <nav id="menu-nav" class="hidden sm:flex flex-col">
+        
+        
+            <div class="menu-item menu-home" role="menuitem">
+                <a href="/.">
+                    <i class="iconfont icon-home" aria-hidden="true"></i>
+                    <span class="menu-title">首页</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-archives" role="menuitem">
+                <a href="/archives">
+                    <i class="iconfont icon-archive" aria-hidden="true"></i>
+                    <span class="menu-title">归档</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-categories" role="menuitem">
+                <a href="/categories">
+                    <i class="iconfont icon-folder" aria-hidden="true"></i>
+                    <span class="menu-title">分类</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-tags" role="menuitem">
+                <a href="/tags">
+                    <i class="iconfont icon-tag" aria-hidden="true"></i>
+                    <span class="menu-title">标签</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-links" role="menuitem">
+                <a href="/links">
+                    <i class="iconfont icon-friend" aria-hidden="true"></i>
+                    <span class="menu-title">友链</span>
+                </a>
+            </div>
+        
+        
+            <div class="menu-item menu-about" role="menuitem">
+                <a href="/about">
+                    <i class="iconfont icon-cup" aria-hidden="true"></i>
+                    <span class="menu-title">关于</span>
+                </a>
+            </div>
+        
+        
+<div class="social-links flex sm:flex-col lg:hidden mt-5">
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont social-icon icon-github"></i>
+                <span class="menu-title hidden lg:inline">menu.github</span>
+            </a>
+        </span>
+    
+        <span class="social-item text-center">
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont social-icon icon-project"></i>
+                <span class="menu-title hidden lg:inline">menu.project</span>
+            </a>
+        </span>
+    
+</div>
+
+
+    </nav>
+</header>
+
+        <section class="main-section">
+            
+    <main class="flex-1 px-4 py-14 md:px-5 lg:px-8 lg:py-4 relative min-h-screen">
+    
+
+    <article class="content article article-archives article-type-list" itemscope="">
+        <header class="article-header">
+            
+    
+        <h1 class="article-title text-lg" itemprop="name">
+            MC-frp映射搭建
+        </h1>
+    
+
+
+
+            <p class="article-meta mb-3 text-xs">
+                <span class="article-date">
+    <i class="iconfont icon-calendar-check"></i>
+	<a href="/post/122817/" class="article-date">
+	  <time datetime="2024-12-28T08:17:48.000Z" itemprop="datePublished">12月 28</time>
+	</a>
+</span>
+
+                
+    <span class="article-category">
+    <i class="iconfont icon-folder"></i>
+    <a class="article-category-link" href="/categories/Minecraft/">Minecraft</a>
+  </span>
+
+
+                
+    <span class="article-tags">
+    <i class="iconfont icon-tag"></i>
+    <a class="article-tag-none-link" href="/tags/MC/" rel="tag">MC</a>, <a class="article-tag-none-link" href="/tags/frp/" rel="tag">frp</a>, <a class="article-tag-none-link" href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a>
+  </span>
+
+
+                <span class="_partial/post-comment"><i class="icon icon-comment"></i>
+                    <a href="/post/122817/#comments" class="article-comment-link">
+                        评论
+                    </a>
+                </span>
+                
+    
+        <span class="post-wordcount" itemprop="wordCount">字数统计: 1.2k(字)</span>
+    
+    
+        <span class="post-readcount" itemprop="timeRequired">阅读时长: 4(分)</span>
+    
+
+
+            </p>
+        </header>
+        <div class="marked-body article-body">
+            <h1 id="MC-frp映射搭建"><a href="#MC-frp映射搭建" class="headerlink" title="MC-frp映射搭建"></a>MC-frp映射搭建</h1><p>本篇使用Frp搭建了一个内网穿透，满足无公网的服务器的外网访问需求。</p>
+<span id="more"></span>
+
+<h2 id="环境信息"><a href="#环境信息" class="headerlink" title="环境信息"></a>环境信息</h2><ul>
+<li>Frp版本：0.61.1</li>
+<li>服务端：腾讯轻量级应用服务器-带公网IP</li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>官方文档地址：<a target="_blank" rel="noopener" href="https://gofrp.org/">链接</a> </p>
+<p>frp项目地址：<a target="_blank" rel="noopener" href="https://github.com/fatedier/frp">链接</a> </p>
+<p>frp经过多次升级，不仅可以实现普通的内网穿透，而且还能够实现xtcp实现P2P打洞穿透。</p>
+<p>本文将在一个公网IP的服务器上架设一个frps，并在MC服务器端添加frpc服务，启用普通frp代理以及P2P内网穿透，实现服务器的外网访问。</p>
+<h2 id="服务器端frps"><a href="#服务器端frps" class="headerlink" title="服务器端frps"></a>服务器端frps</h2><h3 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h3><p>服务端的配置较为简单，只需要设置端口和身份验证即可：</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># frp服务端口，记得打开对应防火墙</span></span><br><span class="line"><span class="attr">bindPort</span> = <span class="number">7000</span></span><br><span class="line"><span class="comment"># token只需要服务端和客户端一致即可</span></span><br><span class="line"><span class="attr">auth.token</span> = <span class="string">"password"</span></span><br></pre></td></tr></table></figure>
+
+<p>需要注意的是，frp服务监听的端口和之后客户端要映射出去的端口都需要开放防火墙。</p>
+<p>之后，使用命令即可开启服务：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./frps -c ./frps.toml</span><br></pre></td></tr></table></figure>
+
+<h3 id="设置为系统服务"><a href="#设置为系统服务" class="headerlink" title="设置为系统服务"></a>设置为系统服务</h3><p>由于我的服务器没有其他服务，直接使用screen运行即可。</p>
+<h2 id="客户端frpc"><a href="#客户端frpc" class="headerlink" title="客户端frpc"></a>客户端frpc</h2><h3 id="服务器端配置-被访问者"><a href="#服务器端配置-被访问者" class="headerlink" title="服务器端配置-被访问者"></a>服务器端配置-被访问者</h3><p>在MC服务器端需要运行frpc客户端，需要配置两种代理：一种是普通TCP代理，实现正常的内网穿透；另外一种为XTCP代理，实现P2P穿透。</p>
+<p>配置文件如下：</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">serverAddr</span> = <span class="string">"x.x.x.x"</span></span><br><span class="line"><span class="attr">serverPort</span> = <span class="number">7000</span> <span class="comment"># 和服务器bindPort相同</span></span><br><span class="line"><span class="attr">loginFailExit</span> = <span class="literal">false</span> <span class="comment"># 第一次连接失败后不退出</span></span><br><span class="line"><span class="attr">auth.token</span> = <span class="string">"password"</span></span><br><span class="line"></span><br><span class="line"><span class="section">[[proxies]]</span></span><br><span class="line"><span class="attr">name</span> = <span class="string">"mc1201"</span> <span class="comment"># 代理名，在本地需唯一</span></span><br><span class="line"><span class="attr">type</span> = <span class="string">"tcp"</span></span><br><span class="line"><span class="attr">localIP</span> = <span class="string">"127.0.0.1"</span></span><br><span class="line"><span class="attr">localPort</span> = <span class="number">25565</span> <span class="comment"># 本地端口</span></span><br><span class="line"><span class="attr">remotePort</span> = <span class="number">25565</span> <span class="comment"># 在服务器端开放的端口</span></span><br><span class="line"><span class="comment"># p2p映射</span></span><br><span class="line"><span class="section">[[proxies]]</span></span><br><span class="line"><span class="attr">name</span> = <span class="string">"mc1201_p2p"</span></span><br><span class="line"><span class="attr">type</span> = <span class="string">"xtcp"</span></span><br><span class="line"><span class="comment"># 只有共享密钥 (secretKey) 与被访问端一致的用户才能访问该服务</span></span><br><span class="line"><span class="attr">secretKey</span> = <span class="string">"password2"</span></span><br><span class="line"><span class="attr">localIP</span> = <span class="string">"127.0.0.1"</span></span><br><span class="line"><span class="attr">localPort</span> = <span class="number">25565</span></span><br><span class="line"><span class="comment"># p2p打洞失败后使用stcp</span></span><br><span class="line"><span class="section">[[proxies]]</span></span><br><span class="line"><span class="attr">name</span> = <span class="string">"mc1201_stcp"</span></span><br><span class="line"><span class="attr">type</span> = <span class="string">"stcp"</span></span><br><span class="line"><span class="comment"># 只有共享密钥 (secretKey) 与被访问端一致的用户才能访问该服务</span></span><br><span class="line"><span class="attr">secretKey</span> = <span class="string">"password3"</span></span><br><span class="line"><span class="attr">localIP</span> = <span class="string">"127.0.0.1"</span></span><br><span class="line"><span class="attr">localPort</span> = <span class="number">25565</span></span><br><span class="line"><span class="comment"># ssh保留代理设置</span></span><br><span class="line"><span class="section">[[proxies]]</span></span><br><span class="line"><span class="attr">name</span> = <span class="string">"ssh"</span></span><br><span class="line"><span class="attr">type</span> = <span class="string">"stcp"</span></span><br><span class="line"><span class="attr">secretKey</span> = <span class="string">"password4"</span></span><br><span class="line"><span class="attr">localIP</span> = <span class="string">"127.0.0.1"</span></span><br><span class="line"><span class="attr">localPort</span> = <span class="number">22</span></span><br></pre></td></tr></table></figure>
+
+<p>记得在frps端remotePort开放防火墙。</p>
+<h3 id="客户端配置-游戏客户端"><a href="#客户端配置-游戏客户端" class="headerlink" title="客户端配置-游戏客户端"></a>客户端配置-游戏客户端</h3><p>游戏客户端可以使用frps公网ip访问，或者使用frpc客户端利用客户端访问。使用p2p访问配置文件如下：</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">serverAddr</span> = <span class="string">"x.x.x.x"</span></span><br><span class="line"><span class="attr">serverPort</span> = <span class="number">7000</span></span><br><span class="line"><span class="attr">auth.token</span> = <span class="string">"password"</span></span><br><span class="line"></span><br><span class="line"><span class="section">[[visitors]]</span></span><br><span class="line"><span class="attr">name</span> = <span class="string">"p2p_mc1201_visitor"</span></span><br><span class="line"><span class="attr">type</span> = <span class="string">"xtcp"</span></span><br><span class="line"><span class="comment"># 要访问的 P2P 代理的名称</span></span><br><span class="line"><span class="attr">serverName</span> = <span class="string">"mc1201_p2p"</span></span><br><span class="line"><span class="attr">secretKey</span> = <span class="string">"password2"</span></span><br><span class="line"><span class="comment"># 绑定本地代理端口</span></span><br><span class="line"><span class="attr">bindAddr</span> = <span class="string">"127.0.0.1"</span></span><br><span class="line"><span class="attr">bindPort</span> = <span class="number">25565</span></span><br><span class="line"><span class="comment"># 如果需要自动保持隧道打开，将其设置为 true</span></span><br><span class="line"><span class="attr">keepTunnelOpen</span> = <span class="literal">true</span></span><br><span class="line"><span class="attr">fallbackTo</span> = <span class="string">"stcp_mc1201_visitor"</span></span><br><span class="line"><span class="attr">fallbackTimeoutMs</span> = <span class="number">10000</span> <span class="comment"># 超时时间10s</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 为防止失败，添加stcp链接在失败时使用</span></span><br><span class="line"><span class="section">[[visitors]]</span></span><br><span class="line"><span class="attr">name</span> = <span class="string">"stcp_mc1201_visitor"</span></span><br><span class="line"><span class="attr">type</span> = <span class="string">"stcp"</span></span><br><span class="line"><span class="attr">serverName</span> = <span class="string">"mc1201_stcp"</span></span><br><span class="line"><span class="attr">secretKey</span> = <span class="string">"password3"</span></span><br><span class="line"><span class="attr">bindPort</span> = -<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>当连接 <code>127.0.0.1:25565</code> 超过 10s p2p 打洞还未成功的话，会回退到使用 stcp_mc1201_visitor 建立连接。</p>
+<p>fallback 后，之前触发的打洞操作仍然会继续，一般来说打洞完成需要的耗时会比较长。</p>
+<p>如果打洞成功，下次建立新的连接时，将不需要再次打洞，会很快完成连接建立，不会触发 fallback。</p>
+<p>需要注意根据访问端和被访问端的延迟情况来合理设置超时时间，以避免超时时间太短，即使打洞成功连接也来不及建立，而一直触发 fallback。</p>
+<p>stcp_mc1201_visitor 的 <code>bindPort</code> 设置为 -1 表示不需要监听物理端口，只接受 fallback 的连接即可。</p>
+<p>对于腐竹，需要ssh管理，还需要以下配置：</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[[visitors]]</span></span><br><span class="line"><span class="attr">name</span> = <span class="string">"ssh"</span></span><br><span class="line"><span class="attr">type</span> = <span class="string">"stcp"</span></span><br><span class="line"><span class="attr">serverName</span> = <span class="string">"ssh"</span></span><br><span class="line"><span class="attr">secretKey</span> = <span class="string">"password4"</span></span><br><span class="line"><span class="attr">bindPort</span> = <span class="number">8000</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 使用以下命令访问机器</span><br><span class="line">ssh -o Port=8000 test@x.x.x.x</span><br></pre></td></tr></table></figure>
+
+<h3 id="服务端设置系统服务"><a href="#服务端设置系统服务" class="headerlink" title="服务端设置系统服务"></a>服务端设置系统服务</h3><p>为保证mc服务器正常进入代理，需要使用<code>systemd</code>添加服务。</p>
+<p>使用文本编辑器在 <code>/etc/systemd/system</code> 目录下创建一个 <code>frpc.service</code> 文件，写入内容：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[Unit]</span><br><span class="line"># 服务名称，可自定义</span><br><span class="line">Description = frp client</span><br><span class="line">After = network.target syslog.target</span><br><span class="line">Wants = network.target</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">Type = simple</span><br><span class="line"># 启动frpc的命令，需修改为您的frpc的安装路径</span><br><span class="line">ExecStart = /path/to/frpc -c /path/to/frpc.toml</span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy = multi-user.target</span><br></pre></td></tr></table></figure>
+
+<p>之后启动服务：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 启动frp</span><br><span class="line">sudo systemctl start frpc</span><br><span class="line"># 停止frp</span><br><span class="line">sudo systemctl stop frpc</span><br><span class="line"># 重启frp</span><br><span class="line">sudo systemctl restart frpc</span><br><span class="line"># 查看frp状态</span><br><span class="line">sudo systemctl status frpc</span><br><span class="line"># 设置开机自启</span><br><span class="line">sudo systemctl enable frpc</span><br></pre></td></tr></table></figure>
+
+<h2 id="连接服务器"><a href="#连接服务器" class="headerlink" title="连接服务器"></a>连接服务器</h2><p>在学校内网用户，直接使用服务器内网地址即可连接。</p>
+<p>在学校外但网络环境好的用户，使用分发的frp客户端使用<code>frpc.exe -c frpc.toml</code>启动连接，然后使用127.0.0.1进行连接。</p>
+<p>在学校外但网络环境(nat)不好的用户，直接使用frps服务器地址即可连接。</p>
+
+        </div>
+        
+<blockquote class="copyright">
+    <p><strong>本文链接 : </strong><a class="permalink" href="https://lostacnet.top/post/122817/">https://lostacnet.top/post/122817/</a></p>
+    <p><strong>This article is available under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</a> License  转载请注明出处</strong></p>
+</blockquote>
+
+
+    </article>
+    
+    <section id="comments">
+        
+    </section>
+
+
+    
+
+</main>
+
+
+<aside style="" id="sidebar" class="aside aside-fixture">
+    <div class="toc-sidebar">
+        <nav id="toc" class="article-toc">
+            <h3 class="toc-title">文章目录</h3>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#MC-frp%E6%98%A0%E5%B0%84%E6%90%AD%E5%BB%BA"><span class="toc-number">1.</span> <span class="toc-text">MC-frp映射搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E4%BF%A1%E6%81%AF"><span class="toc-number">1.1.</span> <span class="toc-text">环境信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.2.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AFfrps"><span class="toc-number">1.3.</span> <span class="toc-text">服务器端frps</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="toc-number">1.3.1.</span> <span class="toc-text">配置文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E4%B8%BA%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1"><span class="toc-number">1.3.2.</span> <span class="toc-text">设置为系统服务</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AFfrpc"><span class="toc-number">1.4.</span> <span class="toc-text">客户端frpc</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF%E9%85%8D%E7%BD%AE-%E8%A2%AB%E8%AE%BF%E9%97%AE%E8%80%85"><span class="toc-number">1.4.1.</span> <span class="toc-text">服务器端配置-被访问者</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%85%8D%E7%BD%AE-%E6%B8%B8%E6%88%8F%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="toc-number">1.4.2.</span> <span class="toc-text">客户端配置-游戏客户端</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E7%AB%AF%E8%AE%BE%E7%BD%AE%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1"><span class="toc-number">1.4.3.</span> <span class="toc-text">服务端设置系统服务</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">1.5.</span> <span class="toc-text">连接服务器</span></a></li></ol></li></ol>
+        </nav>
+    </div>
+</aside>
+
+
+
+
+
+        </section>
+        <footer class="hidden lg:block fixed bottom-0 left-0 sm:w-1/12 lg:w-1/6 bg-gray-100 z-40">
+    
+    <div class="footer-social-links">
+        
+            <a target="_blank" rel="noopener" href="https://github.com/LOStacNet">
+                <i class="iconfont icon-github"></i>
+            </a>
+        
+            <a target="_blank" rel="noopener" href="https://gitee.com/LOStacNet">
+                <i class="iconfont icon-project"></i>
+            </a>
+        
+    </div>
+    
+    
+</footer>
+
+        <div id="mask" class="hidden mask fixed inset-0 bg-gray-900 opacity-75 z-40"></div>
+        <div id="search-view-container" class="hidden shadow-xl"></div>
+        
+<script src="/js/dom-event.min.js"></script>
+
+
+
+<script src="/js/local-search.min.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/lightgallery.js@1.1.3/dist/js/lightgallery.min.js"></script>
+    
+<script src="/js/light-gallery.min.js"></script>
+
+
+
+
+
+
+    </body>
+</html>
